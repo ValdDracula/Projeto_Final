@@ -14,3 +14,7 @@ memory_graph.png
 report.html
 report.pdf
 teste.py
+.idea/inspectionProfiles/Project_Default.xml
+.idea/modules.xml
+.idea/scripts.iml
+__pycache__/arguments.cpython-37.pyc
