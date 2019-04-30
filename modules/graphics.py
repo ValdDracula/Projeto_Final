@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from matplotlib.axes import Axes
 from datetime import datetime
 from matplotlib import style
 from psutil import virtual_memory

@@ -1,12 +1,12 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, mail_notif, json, datetime, os
+import psutil, threading, json, os
 from getpass import getpass
 #from arguments import arguments
-from database import add_jobs_record, update_jobs_record, add_updates_record, createTables
-from database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
-from graphics import cpuUsageGraph, ioGraph, memoryGraph
-from mail_notif import send_notif, check_authentication
+from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
+from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
+from modules.graphics import cpuUsageGraph, ioGraph, memoryGraph
+from modules.mail_notif import send_notif, check_authentication
 
             #Not necessary for the time being:
                 #Variables for disk monitorization
@@ -18,7 +18,7 @@ with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
     config = json.load(f)
     #TODO: Change to ini file type (easier)
 
-#SMTP Password 
+#SMTP Password
 smtp_password = getpass(prompt='Enter SMTP password: ')
 check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
 
