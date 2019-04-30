@@ -1,0 +1,16 @@
+
+report.html
+.idea/misc.xml
+.idea/vcs.xml
+.idea/workspace.xml
+__pycache__/database.cpython-37.pyc
+__pycache__/graphics.cpython-37.pyc
+__pycache__/mail_notif.cpython-37.pyc
+cpu_graph.png
+database/database.db
+database/database.db-journal
+io_graph.png
+memory_graph.png
+report.html
+report.pdf
+teste.py
