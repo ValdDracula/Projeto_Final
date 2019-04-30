@@ -30,10 +30,10 @@ MonAutopsy uses a JSON file to store all the parameters necessary for it's corre
 
 - CPU and memory Usage
 
-|                |Min                            |Max							|
+|                |Min                            |Max						   |
 |----------------|-------------------------------|-----------------------------|
 |CPU Usage		 | Minimum CPU usage for a notification to be triggered           | Maximum CPU usage for a notification to be triggered           
-|Memory          | Minimum memory usage for a notification to be triggered           |Maxmimum memory usage for a notification to be triggered            
+|Memory          | Minimum memory usage for a notification to be triggered           |Maximum memory usage for a notification to be triggered            
 
 # 
 
