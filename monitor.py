@@ -1,6 +1,6 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, mail_notif, json, datetime, os
+import psutil, threading, mail_notif, json, datetime, os, time
 from getpass import getpass
 #from arguments import arguments
 from database import add_jobs_record, update_jobs_record, add_updates_record, createTables
@@ -45,9 +45,9 @@ add_jobs_record()
 
 
 #Threads declarations
-processesThread = None
-reportThread = None
-
+#processesThread = None
+#reportThread = None
+exit = threading.Event()
 
 #Database ID
 id = 0
@@ -55,11 +55,8 @@ id = 0
 
 #Process(es) monitorization
 def checkProcesses():
-    global processesThread
-    try:
-        processesThread = threading.Timer(int(config["time_interval"]["process"]), checkProcesses) #mudar para parametro JSON
-        processesThread.start()
-        
+    while not exit.is_set(): # Loops while the event flag has not been set
+        print("[checkProcessesThread] The event flag is not set yet, continuing operation")
         cpuUsage = 0.0
 
         processesCPUTimes = []
@@ -68,8 +65,14 @@ def checkProcesses():
         processesMemoryInfo = []
         totalThreads = 0
 
-        processes = mainProcess.children(recursive=True) #Get all processes descendants
-        processes.append(mainProcess)
+        #Try catch here in case the mainProcess dies
+        try:
+            processes = mainProcess.children(recursive=True) #Get all processes descendants
+            processes.append(mainProcess)
+        except psutil.NoSuchProcess:
+            if not mainProcess.is_running():
+                print("All processes are dead!!!")
+                return
 
         for proc in processes:
             #Try catch in case some process besides main process dies, this way the execution won't stop due to a secondary process
@@ -87,13 +90,9 @@ def checkProcesses():
             except psutil.NoSuchProcess:
                 if not mainProcess.is_running():
                     print("All processes are dead!!!")
-                    stopThreads()
-                    update_jobs_record()
+                    return
+                else:
                     print("Something died!")
-            except KeyboardInterrupt:
-                stopThreads()
-                update_jobs_record()
-
 
         #Getting 1 record of cpu, which is the sum of the cpu fields of the processes
 
@@ -149,33 +148,25 @@ def checkProcesses():
         if totalMemoryUsage > int(config["memory"]["max"], 10) or totalMemoryUsage < int(config["memory"]["min"]) :
             print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
 
-    except psutil.NoSuchProcess:
-        if not mainProcess.is_running():
-            print("All processes are dead!!!")
-            stopThreads()
-            update_jobs_record()
-            # Notificacao ao admin
-    except KeyboardInterrupt:
-        stopThreads()
-        update_jobs_record()
+        # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
+        exit.wait(timeout=float(config["time_interval"]["process"]))
 
-
-def stopThreads():
-    if isinstance(processesThread, threading.Timer) is True:
-        processesThread.cancel()
-    if isinstance(reportThread, threading.Timer) is True:
-        reportThread.cancel()
+    print("[checkProcessesThread] Event flag has been set, powering off")
 
 #Periodic report creation
 def periodicReport():
-    global reportThread
     #Define and start cicle
-    reportThread = threading.Timer(int(config["time_interval"]["report"]), periodicReport)
-    reportThread.start()
+    while not exit.is_set(): # Loops while the event flag has not been set
+        print("[reportThread] The event flag is not set yet, continuing operation")
 
-    #Call charts creation and send them in the notifications
-    createGraphic()
-    send_notif(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
+        #Call charts creation and send them in the notifications
+        createGraphic()
+        send_notif(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
+
+        # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
+        exit.wait(timeout=float(config["time_interval"]["report"]))
+
+    print("[reportThread] Event flag has been set, powering off")
 
 #CPU, IO and memory charts creation
 def createGraphic():
@@ -190,12 +181,79 @@ def createGraphic():
 
     #TODO: Add IO and memory charts
 
+def terminateThreads(allThreads):
+            print("[MainThread] Setting event flag")
+            exit.set() # Event flag to signal the thread to finish
 
-#Upon starting the script will begin the monitorization and period report cicle
+            # Wait for the threads to finish
+            print("[MainThread] Event flag set, waiting on the threads to finish")
+            
+            for thread in allThreads:
+                thread.join()
+
+            print("[MainThread] All threads have finished")
+
+#Upon starting, the script will begin the monitorization and periodic report cicle
 def main():
-	checkProcesses()
-	periodicReport()
+    try:
+        print("[MainThread] Starting up threads")
 
+        checkProcessesThread = threading.Thread(target=checkProcesses)
+        reportThread = threading.Thread(target=periodicReport)
+        checkProcessesThread.start()
+        reportThread.start()
+
+        print("[MainThread] All threads have started, going to sleep")
+
+        # Without the following loop, it will leave the try-except block and won't catch any exceptions
+        #while True: 
+        #    time.sleep(100)
+
+        # Alternative loop that will detect if any of the threads have ended unexpectedly
+        while checkProcessesThread.is_alive() and reportThread.is_alive():
+            time.sleep(0.1)
+
+        print("[MainThread] Something unexpected happened, shutting down program...")
+
+        allThreads = []
+
+        if checkProcessesThread.is_alive():
+            print("[MainThread] checkProcessesThread is still running, shutting it down")
+            allThreads.append(checkProcessesThread)
+        else:
+            print("[MainThread] checkProcessesThread has stopped unexpectedly")
+
+        if reportThread.is_alive():
+            print("[MainThread] reportThread is still running, shutting it down")
+            allThreads.append(reportThread)
+        else:
+            print("[MainThread] reportThread has stopped unexpectedly")
+
+        terminateThreads(allThreads)
+
+        print("[MainThread] Updating current job in the database")
+
+        update_jobs_record()
+        
+        print("[MainThread] Goodbye")
+
+    except KeyboardInterrupt:
+        print("[MainThread] CTRL-C detected")
+
+        print("[MainThread] Testing if the threads are running")
+
+        if checkProcessesThread.is_alive() or reportThread.is_alive(): 
+            print("[MainThread] At least one thread is running, shutting them down")
+            allThreads = [checkProcessesThread, reportThread]
+            terminateThreads(allThreads)
+        else:
+            ("[MainThread] No thread is running")
+        
+        print("[MainThread] Updating current job in the database")
+
+        update_jobs_record()
+        
+        print("[MainThread] Goodbye")
 
 #EXECUTION
 if __name__ == '__main__':
