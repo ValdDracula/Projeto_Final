@@ -18,9 +18,12 @@ with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
     config = json.load(f)
     #TODO: Change to ini file type (easier)
 
+
 #SMTP Password
-smtp_password = getpass(prompt='Enter SMTP password: ')
-check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
+authenticated = False
+while authenticated is False :
+    smtp_password = getpass(prompt='Enter SMTP password: ')
+    authenticated = check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
 
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 

@@ -91,6 +91,7 @@ def check_authentication(SMTPServer, senderEmail, password):
 	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
 		try:
 			server.login(senderEmail, password)
+			return True
 		except smtplib.SMTPException as e:
 			print(e)
-			exit(2)
+			return False
