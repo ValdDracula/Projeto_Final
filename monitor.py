@@ -1,12 +1,12 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, mail_notif, json, datetime, os, time
+import psutil, threading, json, os, time
 from getpass import getpass
 #from arguments import arguments
-from database import add_jobs_record, update_jobs_record, add_updates_record, createTables
-from database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
-from graphics import cpuUsageGraph
-from mail_notif import send_notif, check_authentication
+from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
+from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
+from modules.graphics import cpuUsageGraph, ioGraph, memoryGraph
+from modules.mail_notif import send_notif, check_authentication
 
             #Not necessary for the time being:
                 #Variables for disk monitorization
@@ -20,7 +20,7 @@ with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
 
 #SMTP Password
 smtp_password = getpass(prompt='Enter SMTP password: ')
-#check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
+check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
 
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 
@@ -174,11 +174,12 @@ def createGraphic():
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_graph", cpuData)
+    cpuUsageGraph("cpu_graph", cpuData, int(config["cpu_usage"]["min"]), int(config["cpu_usage"]["max"]))
+    ioGraph("io_graph", ioData)
+    memoryGraph("memory_graph", memoryData,int(config["memory"]["min"]), int(config["memory"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[0]) + 1
-
     #TODO: Add IO and memory charts
 
 def terminateThreads(allThreads):
