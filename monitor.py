@@ -157,14 +157,15 @@ def checkProcesses():
 def periodicReport():
     #Define and start cicle
     while not exit.is_set(): # Loops while the event flag has not been set
-        print("[reportThread] The event flag is not set yet, continuing operation")
-
-        #Call charts creation and send them in the notifications
-        createGraphic()
-        send_notif(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
-
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
         exit.wait(timeout=float(config["time_interval"]["report"]))
+
+        if not exit.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
+            print("[reportThread] The event flag is not set yet, continuing operation")
+
+            #Call charts creation and send them in the notifications
+            createGraphic()
+            send_notif(config, config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
 
     print("[reportThread] Event flag has been set, powering off")
 

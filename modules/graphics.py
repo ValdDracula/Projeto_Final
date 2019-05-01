@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg') # Fixes a runtime error (related to tkinter and it's execution not being in the main thread)
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
