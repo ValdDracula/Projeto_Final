@@ -1,30 +1,45 @@
-import autoit
-import ctypes
-import pyautogui as ImageGrab
+import win32gui, pythoncom, pyWinhook, pyautogui, threading, autoit
+from autoit import properties
 
-EnumWindows = ctypes.windll.user32.EnumWindows
-EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
-GetWindowText = ctypes.windll.user32.GetWindowTextW
-GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
-IsWindowVisible = ctypes.windll.user32.IsWindowVisible
+def windowEnumerationHandler(hwnd, top_windows):
+    top_windows.append((hwnd, win32gui.GetWindowText(hwnd)))
 
-
-def foreach_window(hwnd, lParam):
-    global wantedWindow
-    if IsWindowVisible(hwnd):
-        length = GetWindowTextLength(hwnd)
-        buff = ctypes.create_unicode_buffer(length + 1)
-        GetWindowText(hwnd, buff, length + 1)
-        if "Autopsy" in buff.value:
-            wantedWindow = buff.value
-            return True
+def disableInput():
+    hm = pyWinhook.HookManager()
+    hm.MouseAll = disable
+    hm.KeyAll = disable
+    hm.HookMouse()
+    hm.HookKeyboard()
 
 
-EnumWindows(EnumWindowsProc(foreach_window), 0)
+def enableInput():
+    hm = pyWinhook.HookManager()
+    hm.MouseAll = enable
+    hm.KeyAll = enable
+    hm.HookMouse()
+    hm.HookKeyboard()
 
-if wantedWindow is not None:
-    autoit.win_activate(wantedWindow)
-    autoit.win_set_state(wantedWindow, flag=3)
-    image = ImageGrab.screenshot()
-    image.crop()
-    image.save('screenshot.jpg')
+def disable(event):
+    return False
+
+def enable(event):
+    return False
+
+def screenshotAutopsy():
+    thread = threading.Timer(2, screenshotAutopsy)
+    thread.start()
+    results = []
+    top_windows = []
+    win32gui.EnumWindows(windowEnumerationHandler, top_windows)
+    for i in top_windows:
+        if "autopsy" in i[1].lower():
+            disableInput()
+            autoit.win_activate(i[1])
+            autoit.win_set_state(i[1], flag=properties.SW_SHOW)
+            win32gui.SetForegroundWindow(i[0])
+            pyautogui.screenshot('screenshot.png')
+            enableInput()
+            break
+    thread.join()
+if __name__ == "__main__":
+    screenshotAutopsy()

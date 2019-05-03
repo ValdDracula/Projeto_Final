@@ -252,7 +252,7 @@ def main():
             allThreads = [checkProcessesThread, reportThread]
             terminateThreads(allThreads)
         else:
-            ("[MainThread] No thread is running")
+            print("[MainThread] No thread is running")
         
         print("[MainThread] Updating current job in the database")
 
