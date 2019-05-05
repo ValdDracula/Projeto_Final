@@ -66,7 +66,7 @@ Max = 6000
 [NOTIFY]
 SMTPServer = smtp.gmail.com 
 SenderMail = monautopsy.notify@gmail.com
-ReceiverMail = 2160840@my.ipleiria.pt 
+ReceiverMail = 123456@email.pt 
 
 [TIME INTERVAL]
 Process = 2
