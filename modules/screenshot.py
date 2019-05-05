@@ -20,7 +20,6 @@ def foreach_window(hwnd, lParam):
 
 def screenshotAutopsy():
     global wantedWindow
-    print("----------------------HERE--------------------")
     EnumWindows = ctypes.windll.user32.EnumWindows
     EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
 
@@ -28,7 +27,6 @@ def screenshotAutopsy():
     if wantedWindow is None:
         print("Plz notify admin that autopsy GUI is down")
     else:
-        print("Im here")
         autoit.win_activate(wantedWindow)
         autoit.win_set_state(wantedWindow, flag=autoit.properties.SW_MAXIMIZE)
         pyautogui.screenshot("screenshot.png")

@@ -1,15 +1,18 @@
-﻿# Installation
+﻿# Requirements
 MonAutopsy requires [Python 3](https://www.python.org/downloads/) to run.
 
+[pip](https://pip.pypa.io/en/stable/) is also required to install all the dependencies. (pip is already installed if you are using Python 2 >=2.7.9 or Python 3 >=3.4)
+
+# Installation
 Install the dependencies to execute the program.
 
 Windows:
 ```sh
-> py setup.py install
+> py -m pip install -r requirements.txt
 ```
 Linux:
 ```sh
-$ python3 setup.py install
+$ python3 -m pip install -r requirements.txt
 ```
 
 # Execution

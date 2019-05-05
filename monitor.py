@@ -1,6 +1,6 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, json, os, time
+import psutil, threading, json, os, time, configparser
 from getpass import getpass
 #from arguments import arguments
 from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
@@ -15,16 +15,19 @@ from modules.screenshot import screenshotAutopsy
                 #print(str(previousDiskBusyTime))
 
 #Load JSON File
-with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
-    config = json.load(f)
+#with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
+    #config = json.load(f)
     #TODO: Change to ini file type (easier)
 
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 #SMTP Password
 authenticated = False
 while authenticated is False :
     smtp_password = getpass(prompt='Enter SMTP password: ')
-    authenticated = check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
+    #authenticated = check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
+    authenticated = check_authentication(config["NOTIFY"]["SMTPServer"], config["NOTIFY"]["SenderEmail"], smtp_password)
 
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 
@@ -143,17 +146,17 @@ def checkProcesses():
         add_updates_record(cpuRecord, IORecord, memoryRecord)
 
         # Send mail if...
-        if cpuUsage > int(config["cpu_usage"]["max"], 10) or cpuUsage < int(config["cpu_usage"]["min"], 10) :
+        if cpuUsage > int(config["CPU USAGE"]["Max"], 10) or cpuUsage < int(config["CPU USAGE"]["Min"], 10) :
             #TODO: Create CPU usage anomaly and call it here
             print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
 
         #TODO: Create IO and memory anomaly notification and call it here
 
-        if totalMemoryUsage > int(config["memory"]["max"], 10) or totalMemoryUsage < int(config["memory"]["min"]) :
+        if totalMemoryUsage > int(config["MEMORY"]["Max"], 10) or totalMemoryUsage < int(config["MEMORY"]["Min"]) :
             print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
 
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        exit.wait(timeout=float(config["time_interval"]["process"]))
+        exit.wait(timeout=float(config["TIME INTERVAL"]["Process"]))
 
     print("[checkProcessesThread] Event flag has been set, powering off")
 
@@ -162,7 +165,7 @@ def periodicReport():
     #Define and start cicle
     while not exit.is_set(): # Loops while the event flag has not been set
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        exit.wait(timeout=float(config["time_interval"]["report"]))
+        exit.wait(timeout=float(config["TIME INTERVAL"]["Report"]))
 
         if not exit.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
             print("[reportThread] The event flag is not set yet, continuing operation")
@@ -170,7 +173,7 @@ def periodicReport():
             #Call charts creation and send them in the notifications
             createGraphic()
             screenshotAutopsy()
-            send_notif(config, config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
+            send_notif(config, config["NOTIFY"]["SMTPServer"], config["NOTIFY"]["SenderEmail"], config["NOTIFY"]["ReceiverEmail"], smtp_password)
 
     print("[reportThread] Event flag has been set, powering off")
 
@@ -180,9 +183,9 @@ def createGraphic():
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_graph", cpuData, int(config["cpu_usage"]["min"]), int(config["cpu_usage"]["max"]))
+    cpuUsageGraph("cpu_graph", cpuData, int(config["CPU USAGE"]["Min"]), int(config["CPU USAGE"]["Max"]))
     ioGraph("io_graph", ioData)
-    memoryGraph("memory_graph", memoryData,int(config["memory"]["min"]), int(config["memory"]["max"]))
+    memoryGraph("memory_graph", memoryData,int(config["MEMORY"]["Min"]), int(config["MEMORY"]["Max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[0]) + 1
