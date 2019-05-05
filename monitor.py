@@ -7,6 +7,7 @@ from modules.database import add_jobs_record, update_jobs_record, add_updates_re
 from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
 from modules.graphics import cpuUsageGraph, ioGraph, memoryGraph
 from modules.mail_notif import send_notif, check_authentication
+from modules.screenshot import screenshotAutopsy
 
             #Not necessary for the time being:
                 #Variables for disk monitorization
@@ -168,6 +169,7 @@ def periodicReport():
 
             #Call charts creation and send them in the notifications
             createGraphic()
+            screenshotAutopsy()
             send_notif(config, config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
 
     print("[reportThread] Event flag has been set, powering off")

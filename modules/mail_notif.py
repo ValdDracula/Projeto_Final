@@ -73,7 +73,7 @@ def createMessage(config):
 	fp.close()
 
 	#Change when screenshot.py works
-	fp = open("cpu_graph.png", "rb")
+	fp = open("screenshot.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<status>')
 	message.attach(msgImage)
