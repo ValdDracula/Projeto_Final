@@ -43,7 +43,7 @@ def createMessage(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(config["CPU USAGE"]["Min"], config["CPU USAGE"]["Max"], config["MEMORY"]["Min"], config["MEMORY"]["Max"])
+	<p>&nbsp;</p>""".format(config["CPU USAGE"]["min"], config["CPU USAGE"]["max"], config["MEMORY"]["min"], config["MEMORY"]["max"])
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "Periodic Report"

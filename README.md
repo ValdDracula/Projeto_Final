@@ -44,7 +44,7 @@ MonAutopsy uses a INI file to store all the configurations necessary for it's co
 
 |      |SMTP Server                |Sender Email|Receiver Email| 
 |------|---------------------------|------------------------------------------|---
-|Notify|SMTP Server URL            |Server username and sender email for all emails sent by the program|Receiver email for all emails sent by the program|
+|Notify|SMTP server domain            |Server username and sender email for all emails sent by the program|Receiver email for all emails sent by the program|
 #
  - Time intervals for monitorization and statistics
 
