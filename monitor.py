@@ -14,13 +14,10 @@ from modules.screenshot import screenshotAutopsy
                 #previousDiskBusyTime = psutil.disk_io_counters().read_time + psutil.disk_io_counters().write_time
                 #print(str(previousDiskBusyTime))
 
-#Load JSON File
-#with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
-    #config = json.load(f)
-    #TODO: Change to ini file type (easier)
-
+#Load INI
 config = configparser.ConfigParser()
 config.read('config.ini')
+#TODO: INI values validation
 
 #SMTP Password
 authenticated = False
