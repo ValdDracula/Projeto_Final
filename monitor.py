@@ -1,26 +1,33 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, json, os, time
+import psutil, threading, time, configparser
 from getpass import getpass
 #from arguments import arguments
 from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
 from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
 from modules.graphics import cpuUsageGraph, ioGraph, memoryGraph
 from modules.mail_notif import send_notif, check_authentication
+from modules.screenshot import screenshotAutopsy
+from modules.ini_validation import iniValidator
 
             #Not necessary for the time being:
                 #Variables for disk monitorization
                 #previousDiskBusyTime = psutil.disk_io_counters().read_time + psutil.disk_io_counters().write_time
                 #print(str(previousDiskBusyTime))
 
-#Load JSON File
-with open(os.path.dirname(os.path.abspath(__file__)) + '\\config.json') as f:
-    config = json.load(f)
-    #TODO: Change to ini file type (easier)
+#Load INI
+config = configparser.ConfigParser()
+config.read('config.ini')
+validation = iniValidator(config)
+if type(validation) is not bool:
+    print(validation)
+    exit(2)
 
 #SMTP Password
-smtp_password = getpass(prompt='Enter SMTP password: ')
-check_authentication(config["notify"]["SMTPServer"], config["notify"]["senderEmail"], smtp_password)
+authenticated = False
+while authenticated is False :
+    smtp_password = getpass(prompt='Enter SMTP password: ')
+    authenticated = check_authentication(config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], smtp_password)
 
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 
@@ -139,17 +146,17 @@ def checkProcesses():
         add_updates_record(cpuRecord, IORecord, memoryRecord)
 
         # Send mail if...
-        if cpuUsage > int(config["cpu_usage"]["max"], 10) or cpuUsage < int(config["cpu_usage"]["min"], 10) :
+        if cpuUsage > int(config["CPU USAGE"]["max"], 10) or cpuUsage < int(config["CPU USAGE"]["min"], 10) :
             #TODO: Create CPU usage anomaly and call it here
             print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
 
         #TODO: Create IO and memory anomaly notification and call it here
 
-        if totalMemoryUsage > int(config["memory"]["max"], 10) or totalMemoryUsage < int(config["memory"]["min"]) :
+        if totalMemoryUsage > int(config["MEMORY"]["max"], 10) or totalMemoryUsage < int(config["MEMORY"]["min"]) :
             print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
 
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        exit.wait(timeout=float(config["time_interval"]["process"]))
+        exit.wait(timeout=float(config["TIME INTERVAL"]["process"]))
 
     print("[checkProcessesThread] Event flag has been set, powering off")
 
@@ -158,14 +165,15 @@ def periodicReport():
     #Define and start cicle
     while not exit.is_set(): # Loops while the event flag has not been set
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        exit.wait(timeout=float(config["time_interval"]["report"]))
+        exit.wait(timeout=float(config["TIME INTERVAL"]["report"]))
 
         if not exit.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
             print("[reportThread] The event flag is not set yet, continuing operation")
 
             #Call charts creation and send them in the notifications
             createGraphic()
-            send_notif(config, config["notify"]["SMTPServer"], config["notify"]["senderEmail"], config["notify"]["receiverEmail"], smtp_password)
+            screenshotAutopsy(mainProcess.pid)
+            send_notif(config, config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], config["NOTIFY"]["receiver_email"], smtp_password)
 
     print("[reportThread] Event flag has been set, powering off")
 
@@ -175,9 +183,9 @@ def createGraphic():
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_graph", cpuData, int(config["cpu_usage"]["min"]), int(config["cpu_usage"]["max"]))
+    cpuUsageGraph("cpu_graph", cpuData, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
     ioGraph("io_graph", ioData)
-    memoryGraph("memory_graph", memoryData,int(config["memory"]["min"]), int(config["memory"]["max"]))
+    memoryGraph("memory_graph", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[0]) + 1
@@ -249,7 +257,7 @@ def main():
             allThreads = [checkProcessesThread, reportThread]
             terminateThreads(allThreads)
         else:
-            ("[MainThread] No thread is running")
+            print("[MainThread] No thread is running")
         
         print("[MainThread] Updating current job in the database")
 

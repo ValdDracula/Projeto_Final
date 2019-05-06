@@ -1,8 +1,7 @@
 import sqlite3, os, time
-dirname = os.path.dirname(os.path.abspath(__file__))
+dirname = os.path.dirname(os.path.abspath(__file__)).replace("\modules", "")
 databaseDir = dirname + "\\database"
 database = dirname + "\\database\\database.db"
-
 #------------DATABASE/TABLES CREATION------------
 def createTables():
 
