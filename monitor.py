@@ -113,7 +113,7 @@ def checkProcesses():
 
         totalCPUTime = totalUserTime + totalSystemTime
 
-        cpuRecord = (cpuUsage, processesNumCores, totalThreads, totalCPUTime, 0)
+        cpuRecord = (cpuUsage, processesNumCores, totalThreads, totalCPUTime)
 
         #Getting 1 record of IO, which is the sum of the IO fields of the processes
 
