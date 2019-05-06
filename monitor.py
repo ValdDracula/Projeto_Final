@@ -32,8 +32,7 @@ while authenticated is False :
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 
 #Selected process monitorization
-PROCNAME = ["autopsy64.exe"]
-#TODO: Change to autopsy64.exe children
+PROCNAME = ["autopsy.exe", "autopsy64.exe"]
 print("\n-----------------------\n\nProcess: " + str(PROCNAME))
 print("\nCPU PERCENT")
 mainProcess = None
@@ -189,7 +188,6 @@ def createGraphic():
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[0]) + 1
-    #TODO: Add IO and memory charts
 
 def terminateThreads(allThreads):
             print("[MainThread] Setting event flag")
