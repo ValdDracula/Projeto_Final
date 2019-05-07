@@ -174,6 +174,7 @@ def periodicReport():
             createGraphic()
             screenshotAutopsy(mainProcess.pid)
             notif_thread = threading.Thread(target=send_notif, args=(config, config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], config["NOTIFY"]["receiver_email"], smtp_password))
+            notif_thread.start()
             notif_thread_list.append(notif_thread)
 
     print("[reportThread] Event flag has been set, powering off")
