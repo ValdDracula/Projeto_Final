@@ -250,7 +250,7 @@ def retrieve_cpu_values():
 
 	try:
 		c = conn.cursor()
-		c.execute('''SELECT usage_percentage, num_cores, threads, cpu_time 
+		c.execute('''SELECT cpu_usage_percentage, num_cores, threads, cpu_time 
 					FROM updates''')
 		rows = c.fetchall()
 
@@ -272,7 +272,7 @@ def retrieve_cpu_values_report(startId):
 
 		tuppleToFill = idTuple + job_idTuple
 
-		c.execute('''SELECT usage_percentage, num_cores, threads, cpu_time 
+		c.execute('''SELECT cpu_usage_percentage, num_cores, threads, cpu_time 
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
 		rows = c.fetchall()
