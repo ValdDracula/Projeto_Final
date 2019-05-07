@@ -160,6 +160,8 @@ def checkProcesses():
 
 #Periodic report creation
 def periodicReport():
+    notif_thread_list = []
+
     #Define and start cicle
     while not threads_exit_event.is_set(): # Loops while the event flag has not been set
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
@@ -171,9 +173,13 @@ def periodicReport():
             #Call charts creation and send them in the notifications
             createGraphic()
             screenshotAutopsy(mainProcess.pid)
-            send_notif(config, config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], config["NOTIFY"]["receiver_email"], smtp_password)
+            notif_thread = threading.Thread(target=send_notif, args=(config, config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], config["NOTIFY"]["receiver_email"], smtp_password))
+            notif_thread_list.append(notif_thread)
 
     print("[reportThread] Event flag has been set, powering off")
+
+    for thread in notif_thread_list:
+        thread.join()
 
 #CPU, IO and memory charts creation
 def createGraphic():
