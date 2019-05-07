@@ -49,11 +49,10 @@ if mainProcess is None :
 createTables()
 add_jobs_record()
 
-
 #Threads declarations
 #processesThread = None
 #reportThread = None
-exit = threading.Event()
+threads_exit_event = threading.Event()
 
 #Database ID
 id = 0
@@ -61,7 +60,7 @@ id = 0
 
 #Process(es) monitorization
 def checkProcesses():
-    while not exit.is_set(): # Loops while the event flag has not been set
+    while not threads_exit_event.is_set(): # Loops while the event flag has not been set
         print("[checkProcessesThread] The event flag is not set yet, continuing operation")
         cpuUsage = 0.0
 
@@ -155,18 +154,18 @@ def checkProcesses():
             print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
 
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        exit.wait(timeout=float(config["TIME INTERVAL"]["process"]))
+        threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["process"]))
 
     print("[checkProcessesThread] Event flag has been set, powering off")
 
 #Periodic report creation
 def periodicReport():
     #Define and start cicle
-    while not exit.is_set(): # Loops while the event flag has not been set
+    while not threads_exit_event.is_set(): # Loops while the event flag has not been set
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        exit.wait(timeout=float(config["TIME INTERVAL"]["report"]))
+        threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["report"]))
 
-        if not exit.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
+        if not threads_exit_event.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
             print("[reportThread] The event flag is not set yet, continuing operation")
 
             #Call charts creation and send them in the notifications
@@ -187,11 +186,11 @@ def createGraphic():
     memoryGraph("memory_graph", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
-    id = int(row[0]) + 1
+    id = int(row[4]) + 1
 
 def terminateThreads(allThreads):
             print("[MainThread] Setting event flag")
-            exit.set() # Event flag to signal the thread to finish
+            threads_exit_event.set() # Event flag to signal the thread to finish
 
             # Wait for the threads to finish
             print("[MainThread] Event flag set, waiting on the threads to finish")

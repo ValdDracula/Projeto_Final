@@ -282,7 +282,7 @@ def retrieve_cpu_values_report(startId):
 
 
 #All memory updates
-def retrieve_memory_values(): 
+def retrieve_IO_values():
 	conn = create_connection(database)
 
 	try:
@@ -297,7 +297,7 @@ def retrieve_memory_values():
 
 
 #Certain memory updates, with id >= startId
-def retrieve_memory_values_report(startId):
+def retrieve_IO_values_report(startId):
 	idTuple = (startId,)
 	conn = create_connection(database)
 	
@@ -319,7 +319,7 @@ def retrieve_memory_values_report(startId):
 		print(e)
 
 #All IO updates
-def retrieve_IO_values():
+def retrieve_memory_values():
 	conn = create_connection(database)
 
 	try:
@@ -333,7 +333,7 @@ def retrieve_IO_values():
 		print(e)
 
 #Certain IO updates, with id >= startId
-def retrieve_IO_values_report(startId):
+def retrieve_memory_values_report(startId):
 	idTuple = (startId,)
 	conn = create_connection(database)
 

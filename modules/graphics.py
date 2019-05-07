@@ -13,9 +13,9 @@ def cpuUsageGraph(name, data, min, max):
 	cpu_usages = []
 	date = None
 	for row in data:
-		date = datetime.fromtimestamp(row[8])
+		date = datetime.fromtimestamp(row[6])
 		times.append(date)
-		cpu_usages.append(math.floor(row[1]))
+		cpu_usages.append(math.floor(row[0]))
 	plt.xticks(rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
@@ -39,12 +39,12 @@ def ioGraph(name, data):
 	io_write_bytes = []
 	date = None
 	for row in data:
-		date = datetime.fromtimestamp(row[7])
+		date = datetime.fromtimestamp(row[6])
 		times.append(date)
 		#io_read_count.append(row[1])
 		#io_write_count.append(row[2])
-		io_read_bytes.append(int(row[3]) / 1000000)
-		io_write_bytes.append(int(row[4]) / 1000000)
+		io_read_bytes.append(int(row[2]) / 1000000)
+		io_write_bytes.append(int(row[3]) / 1000000)
 	plt.xticks(rotation=25)
 	ax = plt.gca()
 
@@ -69,9 +69,9 @@ def memoryGraph(name, data, min, max):
 	mem_usages = []
 	date = None
 	for row in data:
-		date = datetime.fromtimestamp(row[5])
+		date = datetime.fromtimestamp(row[4])
 		times.append(date)
-		mem_usages.append(int(row[1]) / 1000000)
+		mem_usages.append(int(row[0]) / 1000000)
 	plt.xticks(rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
