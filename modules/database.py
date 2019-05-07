@@ -14,7 +14,7 @@ def createTables():
 
 	sql_create_updates_table = '''CREATE TABLE IF NOT EXISTS updates
 							(
-								id INTEGER,
+								id INTEGER NOT NULL,
 								job_id INTEGER NOT NULL,
 								update_time INTEGER NOT NULL,
 								cpu_usage_percentage REAL NOT NULL,
@@ -250,7 +250,7 @@ def retrieve_cpu_values():
 
 	try:
 		c = conn.cursor()
-		c.execute('''SELECT usage_percentage, num_cores, threads, cpu_time 
+		c.execute('''SELECT cpu_usage_percentage, num_cores, threads, cpu_time, id, job_id, update_time 
 					FROM updates''')
 		rows = c.fetchall()
 
@@ -272,7 +272,7 @@ def retrieve_cpu_values_report(startId):
 
 		tuppleToFill = idTuple + job_idTuple
 
-		c.execute('''SELECT usage_percentage, num_cores, threads, cpu_time 
+		c.execute('''SELECT cpu_usage_percentage, num_cores, threads, cpu_time, id, job_id, update_time
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
 		rows = c.fetchall()
@@ -288,7 +288,7 @@ def retrieve_memory_values():
 
 	try:
 		c = conn.cursor()
-		c.execute('''SELECT read_count, write_count, read_bytes, write_bytes 
+		c.execute('''SELECT read_count, write_count, read_bytes, write_bytes, id, job_id, update_time
 					FROM updates''')
 		rows = c.fetchall()
 
@@ -310,7 +310,7 @@ def retrieve_memory_values_report(startId):
 
 		tuppleToFill = idTuple + job_idTuple
 
-		c.execute('''SELECT read_count, write_count, read_bytes, write_bytes 
+		c.execute('''SELECT read_count, write_count, read_bytes, write_bytes, id, job_id, update_time 
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
 		rows = c.fetchall()
@@ -325,7 +325,7 @@ def retrieve_IO_values():
 
 	try:
 		c = conn.cursor()
-		c.execute('''SELECT memory_usage, page_faults 
+		c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
 					FROM updates''')
 		rows = c.fetchall()
 
@@ -346,7 +346,7 @@ def retrieve_IO_values_report(startId):
 
 		tuppleToFill = idTuple + job_idTuple
 
-		c.execute('''SELECT memory_usage, page_faults 
+		c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
 		rows = c.fetchall()
