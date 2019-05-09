@@ -1,9 +1,11 @@
 import configparser, re
+from pathlib import Path
 
-sections = ['CPU USAGE', 'MEMORY', 'NOTIFY', 'TIME INTERVAL']
+sections = ['CPU USAGE', 'MEMORY', 'NOTIFY', 'TIME INTERVAL', 'AUTOPSY CASE']
 cpu_mem_keys = ['min', 'max']
 notify_keys = ['smtp_server', 'sender_email', 'receiver_email']
 time_keys = ['process', 'report']
+case_keys = ['working_directory']
 
 def iniValidator(iniFile):
     if type(iniFile) is configparser.ConfigParser and len(iniFile.sections()) is not 0 and all(elem in iniFile.sections() for elem in sections) is True:
@@ -29,6 +31,11 @@ def iniValidator(iniFile):
 
         if not all(elem in fileTimeKeys for elem in time_keys):
             return "Invalid INI file - Error while getting [TIME INTERVAL] keys\nNeed: {}\nGot: {}".format(time_keys, fileTimeKeys)
+
+        fileCaseKeys = [key for key in iniFile["AUTOPSY CASE"]]
+
+        if not all(elem in fileCaseKeys for elem in case_keys):
+            return "Invalid INI file - Error while getting [AUTOPSY CASE] keys\nNeed: {}\nGot: {}".format(case_keys, fileCaseKeys)
 
         #Check all int values
         #.isdigit() doesn't allow negative values
@@ -84,6 +91,14 @@ def iniValidator(iniFile):
 
         if not re.match("^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$", iniFile["NOTIFY"]["smtp_server"]) and not re.match("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", iniFile["NOTIFY"]["smtp_server"]):
             return "Invalid INI file - Invalid type [NOTIFY] smtp_server = {} (should be a domain or IPv4 address)".format(iniFile["NOTIFY"]["smtp_server"])
+
+        working_directory = iniFile["AUTOPSY CASE"]["working_directory"]
+
+        if working_directory[-1:] != "\\":
+            working_directory += "\\"
+
+        if not Path(working_directory + "Log").exists():
+            return "Invalid INI file - Invalid type [AUTOPSY CASE] working_directory = {} (should be a valid and existing Autopsy Case directory)".format(working_directory)
 
         #Valid ini file!
 
