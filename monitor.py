@@ -5,7 +5,7 @@ from getpass import getpass
 #from arguments import arguments
 from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
 from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
-from modules.graphics import cpuUsageGraph, ioGraph, memoryGraph
+from modules.graphics import *
 from modules.mail_notif import send_notif, check_authentication
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
@@ -201,9 +201,12 @@ def createGraphic(id):
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_graph", cpuData, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
-    ioGraph("io_graph", ioData)
-    memoryGraph("memory_graph", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
+    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+    cpuCoresGraph("cpu_cores", cpuData)
+    cpuThreadsGraph("cpu_threads", cpuData)
+    cpuTimeGraph("cpu_time", cpuData)
+    ioGraph("io", ioData)
+    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[4]) + 1
