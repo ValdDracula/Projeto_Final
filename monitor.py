@@ -54,6 +54,7 @@ createTables()
 threads_exit_event = threading.Event()
 ongoing_job_event = threading.Event()
 readLogFileThread_exit_event = threading.Event()
+job_error_event = threading.Event()
 
 
 #Process(es) monitorization
@@ -163,7 +164,7 @@ def checkProcesses():
 
     if not errorOccurred:
         print("[checkProcessesThread] Event flag has been set")
-        
+
     print("[checkProcessesThread] Updating current job in the database")
     update_jobs_record()
     
@@ -260,6 +261,18 @@ def readLogFile():
             if ongoing_job_event.is_set(): # There might be jobs that the program has not monitored, since there was a finishIngestJob declaration before reaching EOF
                 ongoing_job_event.clear()
 
+            job_error_event.set()
+
+            continue
+        # If for some reason Autopsy doesn't manage to start the job
+        elif "Ingest job" in log_line and "could not be started" in log_line:
+            has_job_started = False
+
+            if ongoing_job_event.is_set():
+                ongoing_job_event.clear()
+
+            print("")
+            
             continue
         # If it reaches EOF, it returns an empty string; set the ongoing_job flag if there was a startIngestJob declaration and no finishIngestJob one
         elif log_line == "" and has_job_started and not ongoing_job_event.is_set(): 
@@ -317,13 +330,15 @@ def main():
             while checkProcessesThread.is_alive() and reportThread.is_alive() and readLogFileThread.is_alive() and ongoing_job_event.is_set():
                 time.sleep(0.1)
 
-            # If the flag has been reset, which means the job has ended
+            # If the flag has been reset, which means the job has ended and no errors occured
             if not ongoing_job_event.is_set():
-                print("[MainThread] The job has finished, shutting down threads...")
+                if not job_error_event.is_set():
+                    print("[MainThread] The job has finished, shutting down threads...")
+                else:
+                    print("[MainThread] AUTOPSY ERROR - the job could not be started, shutting down threads...")
+                    job_error_event.clear()
 
                 terminateThreads([checkProcessesThread, reportThread])
-
-                print("[MainThread] Updating current job in the database")
                 continue
 
             # If it gets here, it means one or more of the threads has ended unexpectedly
@@ -349,8 +364,6 @@ def main():
             if readLogFileThread.is_alive():
                 print("[MainThread] readLogFileThread is still running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
-
-            print("[MainThread] Updating current job in the database")
             
             errorOccurred = True
 
