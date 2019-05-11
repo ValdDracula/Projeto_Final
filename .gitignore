@@ -27,3 +27,4 @@ modules/__pycache__/mail_notif.cpython-37.pyc
 *.pyc
 *.xml___jb_tmp___
 database/sqlite3.exe
+*.ini
