@@ -61,7 +61,10 @@ memory_occurrences = 0
 #Process(es) monitorization
 def checkProcesses():
     errorOccurred = False
-    global cpu_occurrences, memory_occurrences
+    cpu_occurrences = 0
+    memory_occurrences = 0
+    notif_thread = None
+
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         print("[checkProcessesThread] The event flag is not set yet, continuing operation")
         cpuUsage = 0.0
@@ -156,7 +159,8 @@ def checkProcesses():
                 cpu_min_notif_data = retrieve_cpu_values_notif()
                 cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
                 lastCpuValue = cpu_min_notif_data[-1][0]
-                send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=True)
+                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, True))
+                notif_thread.start()
                 print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 cpu_occurrences = 0
             else:
@@ -170,7 +174,8 @@ def checkProcesses():
                 cpu_max_notif_data = retrieve_cpu_values_notif()
                 cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
                 lastCpuValue = cpu_max_notif_data[-1][0]
-                send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=False)
+                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, False))
+                notif_thread.start()
                 print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 cpu_occurrences = 0
             else:
@@ -184,20 +189,22 @@ def checkProcesses():
                 memory_min_notif_data = retrieve_memory_values_notif()
                 memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
                 lastMemoryValue = int(memory_min_notif_data[-1][0]) / 1000000
-                send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=True)
+                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, True))
+                notif_thread.start()
                 print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 memory_occurrences = 0
             else:
                 memory_occurrences += 1
         else:
-            cpu_occurrences = 0
+            memory_occurrences = 0
 
         if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
             if memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
                 memory_max_notif_data = retrieve_memory_values_notif()
                 memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]))
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
-                send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=False)
+                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, False))
+                notif_thread.start()
                 print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 memory_occurrences = 0
             else:
@@ -213,6 +220,9 @@ def checkProcesses():
 
     print("[checkProcessesThread] Updating current job in the database")
     update_jobs_record()
+
+    if notif_thread is not None:
+        notif_thread.join()
     
     print("[checkProcessesThread] Powering off")
 
@@ -310,8 +320,6 @@ def readLogFile():
             if ongoing_job_event.is_set(): # There might be jobs that the program has not monitored, since there was a finishIngestJob declaration before reaching EOF
                 ongoing_job_event.clear()
 
-            job_error_event.set()
-
             continue
         # If for some reason Autopsy doesn't manage to start the job
         elif "Ingest job" in log_line and "could not be started" in log_line:
@@ -320,7 +328,9 @@ def readLogFile():
             if ongoing_job_event.is_set():
                 ongoing_job_event.clear()
 
-            print("")
+            job_error_event.set()
+
+            print("[readLogFileThread] AUTOPSY ERROR DETECTED - the job could not be started")
             
             continue
         # If it reaches EOF, it returns an empty string; set the ongoing_job flag if there was a startIngestJob declaration and no finishIngestJob one
