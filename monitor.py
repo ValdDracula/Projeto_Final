@@ -4,9 +4,9 @@ import psutil, threading, time, configparser
 from getpass import getpass
 #from arguments import arguments
 from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
-from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report
+from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report, retrieve_memory_values_notif, retrieve_cpu_values_notif
 from modules.graphics import *
-from modules.mail_notif import send_notif, check_authentication
+from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
 
@@ -27,7 +27,7 @@ if type(validation) is not bool:
 authenticated = False
 while authenticated is False :
     smtp_password = getpass(prompt='Enter SMTP password: ')
-    authenticated = check_authentication(config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], smtp_password)
+    authenticated = check_authentication(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], smtp_password)
 
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 
@@ -55,11 +55,12 @@ threads_exit_event = threading.Event()
 ongoing_job_event = threading.Event()
 readLogFileThread_exit_event = threading.Event()
 
-
+cpu_occurrences = 0
+memory_occurrences = 0
 #Process(es) monitorization
 def checkProcesses():
     errorOccurred = False
-
+    global cpu_occurrences, memory_occurrences
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         print("[checkProcessesThread] The event flag is not set yet, continuing operation")
         cpuUsage = 0.0
@@ -148,16 +149,43 @@ def checkProcesses():
 
         add_updates_record(cpuRecord, IORecord, memoryRecord)
 
-        # Send mail if...
-        if cpuUsage > int(config["CPU USAGE"]["max"], 10) or cpuUsage < int(config["CPU USAGE"]["min"], 10) :
-            #TODO: Create CPU usage anomaly and call it here
+        #Send mail if...
+        if cpuUsage < int(config["CPU USAGE"]["min"], 10) and cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
+            cpu_min_notif_data = retrieve_cpu_values_notif()
+            cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+            lastCpuValue = cpu_min_notif_data[-1][0]
+            send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=True)
             print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+            cpu_occurrences = 0
 
-        #TODO: Create IO and memory anomaly notification and call it here
+        if cpuUsage > int(config["CPU USAGE"]["max"], 10) and cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
+            cpu_max_notif_data = retrieve_cpu_values_notif()
+            cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+            lastCpuValue = cpu_max_notif_data[-1][0]
+            send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=False)
+            print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+            cpu_occurrences = 0
 
-        if totalMemoryUsage > int(config["MEMORY"]["max"], 10) or totalMemoryUsage < int(config["MEMORY"]["min"]) :
+        #TODO: Create IO anomaly notification and call it here
+
+        if totalMemoryUsage / 1000000 < int(config["MEMORY"]["min"]) and memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
+            memory_min_notif_data = retrieve_memory_values_notif()
+            memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
+            lastMemoryValue = int(memory_min_notif_data[-1][0]) / 1000000
+            send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=True)
             print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+            memory_occurrences = 0
 
+        if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]) and memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
+            memory_max_notif_data = retrieve_memory_values_notif()
+            memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]))
+            lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
+            send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=False)
+            print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+            memory_occurrences = 0
+
+        cpu_occurrences += 1
+        memory_occurrences += 1
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
         threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["process"]))
 
@@ -187,7 +215,7 @@ def periodicReport():
             #Call charts creation and send them in the notifications
             id = createGraphic(id)
             screenshotAutopsy(mainProcess.pid)
-            notif_thread = threading.Thread(target=send_notif, args=(config, config["NOTIFY"]["smtp_server"], config["NOTIFY"]["sender_email"], config["NOTIFY"]["receiver_email"], smtp_password))
+            notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password))
             notif_thread.start()
             notif_thread_list.append(notif_thread)
 
