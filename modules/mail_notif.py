@@ -2,6 +2,7 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
+import math
 
 port = 465  # SSL
 
@@ -18,9 +19,9 @@ def createMemMinNotif(config, memoryValue):
 <h1 style="text-align: center;"><strong>Memory Notification</strong></h1>
 <p>&nbsp;</p>
 <h2>WARNING:</h2>
-<p style="padding-left: 60px;">Memory usage is lower than minimum value established ({}%).</p>
-<p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:memory_usage" alt="" class="center"/>""".format(config["MEMORY"]["min"], memoryValue)
+<p style="padding-left: 60px;">Memory usage is lower than minimum value established ({}MB).</p>
+<p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}MB</strong></p>
+<img src="cid:memory_usage" alt="" class="center"/>""".format(config["MEMORY"]["min"], math.floor(memoryValue))
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "Memory notification"
