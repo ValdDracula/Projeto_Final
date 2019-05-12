@@ -150,43 +150,53 @@ def checkProcesses():
 
         add_updates_record(cpuRecord, IORecord, memoryRecord)
 
-        #Send mail if...
-        if cpuUsage < int(config["CPU USAGE"]["min"], 10) and cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
-            cpu_min_notif_data = retrieve_cpu_values_notif()
-            cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
-            lastCpuValue = cpu_min_notif_data[-1][0]
-            send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=True)
-            print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
-            cpu_occurrences = 0
+        #Send notifications if...
+        if cpuUsage < int(config["CPU USAGE"]["min"], 10):
+            if cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
+                cpu_min_notif_data = retrieve_cpu_values_notif()
+                cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+                lastCpuValue = cpu_min_notif_data[-1][0]
+                send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=True)
+                print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+                cpu_occurrences = 0
+            else:
+                cpu_occurrences += 1
 
-        if cpuUsage > int(config["CPU USAGE"]["max"], 10) and cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
-            cpu_max_notif_data = retrieve_cpu_values_notif()
-            cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
-            lastCpuValue = cpu_max_notif_data[-1][0]
-            send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=False)
-            print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
-            cpu_occurrences = 0
+        if cpuUsage > int(config["CPU USAGE"]["max"], 10):
+            if cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
+                cpu_max_notif_data = retrieve_cpu_values_notif()
+                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+                lastCpuValue = cpu_max_notif_data[-1][0]
+                send_cpu_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, min=False)
+                print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+                cpu_occurrences = 0
+            else:
+                cpu_occurrences += 1
 
         #TODO: Create IO anomaly notification and call it here
 
-        if totalMemoryUsage / 1000000 < int(config["MEMORY"]["min"]) and memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
-            memory_min_notif_data = retrieve_memory_values_notif()
-            memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
-            lastMemoryValue = int(memory_min_notif_data[-1][0]) / 1000000
-            send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=True)
-            print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
-            memory_occurrences = 0
+        if totalMemoryUsage / 1000000 < int(config["MEMORY"]["min"]):
+            if memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
+                memory_min_notif_data = retrieve_memory_values_notif()
+                memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
+                lastMemoryValue = int(memory_min_notif_data[-1][0]) / 1000000
+                send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=True)
+                print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+                memory_occurrences = 0
+            else:
+                memory_occurrences += 1
 
-        if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]) and memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
-            memory_max_notif_data = retrieve_memory_values_notif()
-            memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]))
-            lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
-            send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=False)
-            print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
-            memory_occurrences = 0
+        if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
+            if memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
+                memory_max_notif_data = retrieve_memory_values_notif()
+                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]))
+                lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
+                send_memory_notif(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, min=False)
+                print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
+                memory_occurrences = 0
+            else:
+                memory_occurrences += 1
 
-        cpu_occurrences += 1
-        memory_occurrences += 1
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
         threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["process"]))
 
