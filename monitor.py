@@ -161,6 +161,9 @@ def checkProcesses():
                 cpu_occurrences = 0
             else:
                 cpu_occurrences += 1
+        else:
+            cpu_occurrences = 0
+
 
         if cpuUsage > int(config["CPU USAGE"]["max"], 10):
             if cpu_occurrences == int(config["NOTIFICATIONS"]["cpu_usage"]):
@@ -172,7 +175,8 @@ def checkProcesses():
                 cpu_occurrences = 0
             else:
                 cpu_occurrences += 1
-
+        else:
+            cpu_occurrences = 0
         #TODO: Create IO anomaly notification and call it here
 
         if totalMemoryUsage / 1000000 < int(config["MEMORY"]["min"]):
@@ -185,6 +189,8 @@ def checkProcesses():
                 memory_occurrences = 0
             else:
                 memory_occurrences += 1
+        else:
+            cpu_occurrences = 0
 
         if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
             if memory_occurrences == int(config["NOTIFICATIONS"]["memory_usage"]):
@@ -196,6 +202,8 @@ def checkProcesses():
                 memory_occurrences = 0
             else:
                 memory_occurrences += 1
+        else:
+            memory_occurrences = 0
 
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
         threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["process"]))
