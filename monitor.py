@@ -337,7 +337,7 @@ def readLogFile():
     
     print("[readLogFileThread] Event flag has been set, powering off")
 
-    if not log_file.closed():
+    if not log_file.closed:
         log_file.close()
 
 
