@@ -16,12 +16,12 @@ def createMemMinNotif(config, memoryValue):
   margin-right: auto;
   width: 50%;
 }}</style>
-<h1 style="text-align: center;"><strong>Memory Notification</strong></h1>
+<h1 style="text-align: center; font-size: 50px;"><strong>Memory Notification</strong></h1>
 <p>&nbsp;</p>
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">Memory usage is lower than minimum value established ({}MB).</p>
 <p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}MB</strong></p>
-<img src="cid:memory_usage" alt="" class="center"/>""".format(config["MEMORY"]["min"], math.floor(memoryValue))
+<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["MEMORY"]["min"], math.floor(memoryValue))
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "Memory notification"
@@ -48,12 +48,12 @@ def createMemMaxNotif(config, memoryValue):
   margin-right: auto;
   width: 50%;
 }}</style>
-<h1 style="text-align: center;"><strong>Memory Notification</strong></h1>
+<h1 style="text-align: center; font-size: 50px;"><strong>Memory Notification</strong></h1>
 <p>&nbsp;</p>
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">Memory usage is higher than maximum value established ({}%).</p>
 <p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:memory_usage" alt="" class="center"/>""".format(config["MEMORY"]["max"], memoryValue)
+<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["MEMORY"]["max"], memoryValue)
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "Memory notification"
@@ -79,12 +79,12 @@ def createCpuMinNotif(config, cpuValue):
   margin-right: auto;
   width: 50%;
 }}</style>
-<h1 style="text-align: center;"><strong>CPU Notification</strong></h1>
+<h1 style="text-align: center; font-size: 50px;"><strong>CPU Notification</strong></h1>
 <p>&nbsp;</p>
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">CPU usage is lower than minimum value established ({}%).</p>
 <p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" class="center"/>""".format(config["CPU USAGE"]["min"], cpuValue)
+<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["CPU USAGE"]["min"], cpuValue)
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "CPU notification"
@@ -111,12 +111,12 @@ def createCpuMaxNotif(config, cpuValue):
   margin-right: auto;
   width: 50%;
 }}</style>
-<h1 style="text-align: center;"><strong>CPU Notification</strong></h1>
+<h1 style="text-align: center; font-size: 50px;"><strong>CPU Notification</strong></h1>
 <p>&nbsp;</p>
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">CPU usage is lower than maximum value established ({}%).</p>
 <p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" class="center"/>""".format(config["CPU USAGE"]["max"], cpuValue)
+<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["CPU USAGE"]["max"], cpuValue)
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "CPU notification"
@@ -160,39 +160,39 @@ def createPeriodicReport(config):
 		padding: 8px;
 	}}
 	</style>
-	<h1 style="text-align: center;"><strong>Periodic Report</strong></h1>
+	<h1 style="text-align: center; font-size: 50px;"><strong>Periodic Report</strong></h1>
 	<p>&nbsp;</p>
 	<h2>Configurations:</h2>
-	<table class="inlineTable">
+	<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
 		<thead>
 			<tr>
-				<th style="font-weight: 800">CPU/Memory configuration</th>
-				<th style="font-weight: bolder">Minimum</th>
-				<th style="font-weight: bolder">Maximum</th>
+				<th style="font-weight: 800; border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU/Memory configuration</th>
+				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Minimum</th>
+				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum</th>
 			</tr>
 		</thead>
 			<tbody>
 				<tr>
-				<td>CPU usage</td>
-				<td>{} %</td>
-				<td>{} %</td>
+				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU usage</td>
+				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} %</td>
+				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} %</td>
 			</tr>
 			<tr>
-				<td>Virtual memory usage</td>
-				<td>{} MB</td>
-				<td>{} MB</td>
+				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Virtual memory usage</td>
+				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} MB</td>
+				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} MB</td>
 			</tr>
 		</tbody>
 	</table>
-	<table class="inlineTable">
+	<table style="display: inline-block;">
 		<tr>
-			<th rowspan="2" style="font-weight: 800" width="10" height="90">Time intervals</th>
-			<th width=70>Autopsy process</th>
-			<th width=10>Periodic report</th>
+			<th rowspan="2" style="font-weight: 800 border: 1px solid #dddddd; text-align: left; padding: 8px;" width="10" height="90">Time intervals</th>
+			<th width=70 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Autopsy process</th>
+			<th width=10 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Periodic report</th>
 		</tr>
 		<tr>
-			<td width=140>Autopsy processes are monitored every {} seconds</td>
-			<td width=330>The periodic report is sent to <u>{}</u> every {} seconds</td>
+			<td width=140 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Autopsy processes are monitored every {} seconds</td>
+			<td width=330 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">The periodic report is sent to <u>{}</u> every {} seconds</td>
 		</tr>
 	</table>
 	<p>&nbsp;</p>
