@@ -7,6 +7,7 @@ from matplotlib import style
 from psutil import virtual_memory
 import math
 style.use('fivethirtyeight')
+#TODO: Median values in graphics
 
 def cpuUsageGraph(name, data, min, max):
     times = []
@@ -20,7 +21,7 @@ def cpuUsageGraph(name, data, min, max):
     ax = plt.gca()
     xfmt = mdates.DateFormatter('%H:%M:%S')
     ax.xaxis.set_major_formatter(xfmt)
-    plt.plot(times, cpu_usages, label="Autopsy", linewidth=0.2)
+    plt.plot(times, cpu_usages, label="Autopsy", linewidth=0.7)
     plt.locator_params(axis='x', nbins=10)
     plt.axhline(min, label="Minimum CPU Usage ({}%)".format(min), linestyle='--', color='g', linewidth=2)
     plt.axhline(max, label="Maximum CPU Usage ({}%)".format(max), linestyle='--', color='r', linewidth=2)
@@ -45,7 +46,7 @@ def cpuCoresGraph(name, data):
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	#ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-	plt.plot(times, cpu_cores, label="Autopsy")
+	plt.plot(times, cpu_cores, label="Autopsy", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=10)	
 	plt.xlabel("Time")
 	plt.ylabel("CPU cores")
@@ -67,7 +68,7 @@ def cpuThreadsGraph(name, data):
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
-	plt.plot(times, cpu_threads, label="Autopsy")
+	plt.plot(times, cpu_threads, label="Autopsy", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=10)
 	plt.xlabel("Time")
 	plt.ylabel("CPU threads (%)")
@@ -89,7 +90,7 @@ def cpuTimeGraph(name, data):
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
-	plt.plot(times, cpu_times, label="Autopsy")
+	plt.plot(times, cpu_times, label="Autopsy", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=10)
 	plt.xlabel("Time")
 	plt.ylabel("CPU time (seconds)")
@@ -119,8 +120,8 @@ def ioGraph(name, data):
 	ax.xaxis.set_major_formatter(xfmt)
 	#plt.plot(times, io_read_count, label="Autopsy read count")
 	#plt.plot(times, io_write_count, label="Autopsy write count")
-	plt.plot(times, io_read_bytes, label="Autopsy read MB")
-	plt.plot(times, io_write_bytes, label="Autopsy write MB")
+	plt.plot(times, io_read_bytes, label="Autopsy read MB", linewidth=0.7)
+	plt.plot(times, io_write_bytes, label="Autopsy write MB", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=10)
 	plt.xlabel("Time")
 	plt.ylabel("MBytes")
@@ -144,7 +145,7 @@ def memoryUsageGraph(name, data, min, max):
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
-	plt.plot(times, mem_usages, label="Autopsy")
+	plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=10)
 	plt.axhline(min, label="Minimum Memory Usage ({}MB)".format(min), linestyle='--', color='g', linewidth=2)
 	plt.axhline(max, label="Maximum Memory Usage ({}MB)".format(max), linestyle='--', color='r', linewidth=2)
