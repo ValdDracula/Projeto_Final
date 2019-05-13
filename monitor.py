@@ -303,7 +303,7 @@ def readLogFile():
     if working_directory[-1:] != "\\":
         working_directory += "\\"
 
-    log_file = open(working_directory + "Log\\autopsy.log.0")
+    log_file = open(working_directory + "Log\\autopsy.log.0", encoding='utf-8')
 
     has_job_started = False
 
@@ -327,10 +327,8 @@ def readLogFile():
 
             if ongoing_job_event.is_set():
                 ongoing_job_event.clear()
-
-            job_error_event.set()
-
-            print("[readLogFileThread] AUTOPSY ERROR DETECTED - the job could not be started")
+                job_error_event.set()
+                print("[readLogFileThread] AUTOPSY ERROR DETECTED - the job could not be started")
 
             continue
         # If it reaches EOF, it returns an empty string; set the ongoing_job flag if there was a startIngestJob declaration and no finishIngestJob one
