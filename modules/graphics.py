@@ -20,7 +20,7 @@ def cpuUsageGraph(name, data, min, max):
     ax = plt.gca()
     xfmt = mdates.DateFormatter('%H:%M:%S')
     ax.xaxis.set_major_formatter(xfmt)
-    plt.plot(times, cpu_usages, label="Autopsy")
+    plt.plot(times, cpu_usages, label="Autopsy", linewidth=0.2)
     plt.locator_params(axis='x', nbins=10)
     plt.axhline(min, label="Minimum CPU Usage ({}%)".format(min), linestyle='--', color='g', linewidth=2)
     plt.axhline(max, label="Maximum CPU Usage ({}%)".format(max), linestyle='--', color='r', linewidth=2)
