@@ -337,6 +337,9 @@ def readLogFile():
     
     print("[readLogFileThread] Event flag has been set, powering off")
 
+    if not log_file.closed():
+        log_file.close()
+
 
 #Upon starting, the script will begin the monitorization and periodic report cicle
 def main():
