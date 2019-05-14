@@ -308,7 +308,8 @@ def sendErrorMail(SMTPServer,senderEmail, receiverEmail, password):
 		message["Subject"] = "ERROR - PROGRAM SHUTDOWN"
 		msgAlternative = MIMEMultipart('alternative')
 		message.attach(msgAlternative)
-		msgAlternative.attach(html)
+		html_email = MIMEText(html, "html")
+		msgAlternative.attach(html_email)
 		for mail in receiverEmail:
 			server.sendmail(senderEmail, mail, message.as_string())
 
