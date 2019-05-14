@@ -184,7 +184,7 @@ def createPeriodicReport(config):
 			</tr>
 		</tbody>
 	</table>
-	<table style="display: inline-block;">
+	<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
 		<tr>
 			<th width=70 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Autopsy process</th>
 			<th width=10 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Periodic report</th>
