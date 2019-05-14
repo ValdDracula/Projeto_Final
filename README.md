@@ -1,6 +1,5 @@
-﻿#TODO
+# TODO
 Explicar que o PC nao pode ir para lockscreen senao a parte de screenshot nao funciona.
-
 Ter atencao ao numero de emails enviados pois o SMTP server pode ter um limite diario (500 para o gmail)
 
 # Requirements
