@@ -258,7 +258,7 @@ def periodicReport():
             #Call charts creation and send them in the notifications
             id = createGraphic(id)
             screenshotAutopsy(mainProcess.pid)
-            notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, receivers))
+            notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password))
             notif_thread.start()
             notif_thread_list.append(notif_thread)
 
