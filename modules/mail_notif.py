@@ -186,7 +186,6 @@ def createPeriodicReport(config):
 	</table>
 	<table style="display: inline-block;">
 		<tr>
-			<th rowspan="2" style="font-weight: 800 border: 1px solid #dddddd; text-align: left; padding: 8px;" width="10" height="90">Time intervals</th>
 			<th width=70 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Autopsy process</th>
 			<th width=10 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Periodic report</th>
 		</tr>
