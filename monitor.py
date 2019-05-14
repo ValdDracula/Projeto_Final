@@ -9,6 +9,7 @@ from modules.graphics import *
 from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
+import math
 
             #Not necessary for the time being:
                 #Variables for disk monitorization
@@ -255,14 +256,15 @@ def periodicReport():
 
 #CPU, IO and memory charts creation
 def createGraphic(id):
+    xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"]))
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
-    cpuCoresGraph("cpu_cores", cpuData)
-    cpuThreadsGraph("cpu_threads", cpuData)
-    cpuTimeGraph("cpu_time", cpuData)
-    ioGraph("io", ioData)
+    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]), xNumValues)
+    cpuCoresGraph("cpu_cores", cpuData, xNumValues)
+    cpuThreadsGraph("cpu_threads", cpuData, xNumValues)
+    cpuTimeGraph("cpu_time", cpuData, xNumValues)
+    ioGraph("io", ioData, xNumValues)
     memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
