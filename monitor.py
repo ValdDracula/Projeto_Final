@@ -67,9 +67,9 @@ else:
     receivers = [config["SMTP"]["receiver_email"]]
 
 #Number of values for the X axis
-xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"]))
-if xNumValues > 10:
-    xNumValues = 10
+xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"])) + 1
+if xNumValues > 11:
+    xNumValues = 11
 
 
 #Process(es) monitorization
