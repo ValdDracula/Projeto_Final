@@ -297,7 +297,9 @@ def send_report(config, SMTPServer, senderEmail, receiverEmail, password):
 def send_mail(SMTPServer,senderEmail, receiverEmail, password, message):
 	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
 		server.login(senderEmail, password)
-		server.sendmail(senderEmail, receiverEmail, message.as_string())
+		for mail in receiverEmail:
+			server.sendmail(senderEmail, mail, message.as_string())
+
 
 def check_authentication(SMTPServer, senderEmail, password):
 	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:

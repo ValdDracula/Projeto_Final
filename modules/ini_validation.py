@@ -81,16 +81,26 @@ def iniValidator(iniFile):
 
         #Check all email values
 
-        if not re.match("[^@]+@[^@]+\.[^@]+", iniFile["SMTP"]["sender_email"]):
+        if not re.match("""^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$""", iniFile["SMTP"]["sender_email"]):
             return "Invalid INI file - Invalid type [SMTP] sender_email = {} (should be an email)".format(iniFile["SMTP"]["sender_email"])
 
-        if not re.match("[^@]+@[^@]+\.[^@]+", iniFile["SMTP"]["receiver_email"]):
-            return "Invalid INI file - Invalid type [SMTP] receiver_email = {} (should be an email)".format(iniFile["SMTP"]["receiver_email"])
+        receivers = []
+        # Check for several emails on receiver
+        if ", " in iniFile["SMTP"]["receiver_email"]:
+            receivers = iniFile["SMTP"]["receiver_email"].split(", ")
+        else:
+            receivers = [iniFile["SMTP"]["receiver_email"]]
 
-        #Check all URL/IP values
+        for mail in receivers:
+            if not re.match("""^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$""", mail):
+                 return "Invalid INI file - Invalid type [SMTP] receiver_email = {} (should be a domain or IPv4 address)".format(iniFile["SMTP"]["receiver_email"])
+
+
+        #Check all IP and domain values
 
         if not re.match("^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$", iniFile["SMTP"]["smtp_server"]) and not re.match("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", iniFile["SMTP"]["smtp_server"]):
             return "Invalid INI file - Invalid type [SMTP] smtp_server = {} (should be a domain or IPv4 address)".format(iniFile["SMTP"]["smtp_server"])
+
 
         working_directory = iniFile["AUTOPSY CASE"]["working_directory"]
 

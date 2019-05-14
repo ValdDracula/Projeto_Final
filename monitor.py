@@ -46,6 +46,7 @@ if mainProcess is None :
 	print("No process named "+str(PROCNAME))
 	exit(2)
 
+
 #Create database tables
 createTables()
 
@@ -56,6 +57,18 @@ threads_exit_event = threading.Event()
 ongoing_job_event = threading.Event()
 readLogFileThread_exit_event = threading.Event()
 job_error_event = threading.Event()
+
+
+#Email receivers
+receivers = []
+if ", " in config["SMTP"]["receiver_email"]:
+    receivers = config["SMTP"]["receiver_email"].split(", ")
+else:
+    receivers = [config["SMTP"]["receiver_email"]]
+
+#Number of values for the X axis
+xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"]))
+
 
 #Process(es) monitorization
 def checkProcesses():
@@ -158,9 +171,9 @@ def checkProcesses():
         if cpuUsage < int(config["CPU USAGE"]["min"], 10):
             if cpu_occurrences_min == int(config["NOTIFICATIONS"]["cpu_usage"]):
                 cpu_min_notif_data = retrieve_cpu_values_notif()
-                cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+                cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]), xNumValues)
                 lastCpuValue = cpu_min_notif_data[-1][0]
-                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, True))
+                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, True))
                 notif_thread.start()
                 print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 cpu_occurrences_min = 0
@@ -173,9 +186,9 @@ def checkProcesses():
         if cpuUsage > int(config["CPU USAGE"]["max"], 10):
             if cpu_occurrences_max == int(config["NOTIFICATIONS"]["cpu_usage"]):
                 cpu_max_notif_data = retrieve_cpu_values_notif()
-                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]))
+                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]), xNumValues)
                 lastCpuValue = cpu_max_notif_data[-1][0]
-                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastCpuValue, False))
+                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, False))
                 notif_thread.start()
                 print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 cpu_occurrences_max = 0
@@ -188,9 +201,9 @@ def checkProcesses():
         if totalMemoryUsage / 1000000 < int(config["MEMORY"]["min"]):
             if memory_occurrences_min == int(config["NOTIFICATIONS"]["memory_usage"]):
                 memory_min_notif_data = retrieve_memory_values_notif()
-                memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
+                memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]), xNumValues)
                 lastMemoryValue = int(memory_min_notif_data[-1][0]) / 1000000
-                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, True))
+                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, True))
                 notif_thread.start()
                 print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 memory_occurrences_min = 0
@@ -202,9 +215,9 @@ def checkProcesses():
         if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
             if memory_occurrences_max == int(config["NOTIFICATIONS"]["memory_usage"]):
                 memory_max_notif_data = retrieve_memory_values_notif()
-                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]))
+                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]), xNumValues)
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
-                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, lastMemoryValue, False))
+                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, False))
                 notif_thread.start()
                 print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 memory_occurrences_max = 0
@@ -245,7 +258,7 @@ def periodicReport():
             #Call charts creation and send them in the notifications
             id = createGraphic(id)
             screenshotAutopsy(mainProcess.pid)
-            notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password))
+            notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], config["SMTP"]["receiver_email"], smtp_password, receivers))
             notif_thread.start()
             notif_thread_list.append(notif_thread)
 
@@ -256,7 +269,6 @@ def periodicReport():
 
 #CPU, IO and memory charts creation
 def createGraphic(id):
-    xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"]))
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
@@ -265,7 +277,7 @@ def createGraphic(id):
     cpuThreadsGraph("cpu_threads", cpuData, xNumValues)
     cpuTimeGraph("cpu_time", cpuData, xNumValues)
     ioGraph("io", ioData, xNumValues)
-    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]))
+    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]), xNumValues)
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[4]) + 1
