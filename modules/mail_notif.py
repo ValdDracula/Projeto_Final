@@ -300,6 +300,17 @@ def send_mail(SMTPServer,senderEmail, receiverEmail, password, message):
 		for mail in receiverEmail:
 			server.sendmail(senderEmail, mail, message.as_string())
 
+def sendErrorMail(SMTPServer,senderEmail, receiverEmail, password):
+	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
+		server.login(senderEmail, password)
+		html = """<h1 style="text-align: center; font-size: 50px;"><strong>ERROR, GO CHECK IT</strong></h1>"""
+		message = MIMEMultipart("related")
+		message["Subject"] = "ERROR - PROGRAM SHUTDOWN"
+		msgAlternative = MIMEMultipart('alternative')
+		message.attach(msgAlternative)
+		msgAlternative.attach(html)
+		for mail in receiverEmail:
+			server.sendmail(senderEmail, mail, message.as_string())
 
 def check_authentication(SMTPServer, senderEmail, password):
 	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:

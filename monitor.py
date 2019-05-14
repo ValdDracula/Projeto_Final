@@ -6,7 +6,7 @@ from getpass import getpass
 from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
 from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report, retrieve_memory_values_notif, retrieve_cpu_values_notif
 from modules.graphics import *
-from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif
+from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMail
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
 import math
@@ -67,9 +67,9 @@ else:
     receivers = [config["SMTP"]["receiver_email"]]
 
 #Number of values for the X axis
-xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"]))
-if xNumValues > 10:
-    xNumValues = 10
+xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"])) + 1
+if xNumValues > 11:
+    xNumValues = 11
 
 
 #Process(es) monitorization
@@ -421,6 +421,7 @@ def main():
 
             print("[MainThread] Something unexpected happened, shutting down program...")
 
+
             allThreads = []
 
             if checkProcessesThread.is_alive():
@@ -464,6 +465,7 @@ def main():
                 terminateReadLogFileThread(readLogFileThread)
 
         print("[MainThread] Goodbye")
+        sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password)
 
 #EXECUTION
 if __name__ == '__main__':
