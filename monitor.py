@@ -83,6 +83,8 @@ def checkProcesses():
 
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         print("[checkProcessesThread] The event flag is not set yet, continuing operation")
+        start_timestamp = time.time()
+
         cpuUsage = 0.0
 
         processesCPUTimes = []
@@ -228,8 +230,12 @@ def checkProcesses():
         else:
             memory_occurrences_max = 0
 
+        finish_timestamp = time.time()
+        waiting_time = float(config["TIME INTERVAL"]["process"]) - (finish_timestamp - start_timestamp)
+
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["process"]))
+        if waiting_time > 0:
+            threads_exit_event.wait(timeout=waiting_time)
 
     if not errorOccurred:
         print("[checkProcessesThread] Event flag has been set")
@@ -249,12 +255,17 @@ def periodicReport():
     #Database ID
     id = 0
 
+    waiting_time = float(config["TIME INTERVAL"]["report"])
+
     #Define and start cycle
     while not threads_exit_event.is_set(): # Loops while the event flag has not been set
         # The thread will get blocked here unless the event flag is already set, and will break if it set at any time during the timeout
-        threads_exit_event.wait(timeout=float(config["TIME INTERVAL"]["report"]))
+        threads_exit_event.wait(timeout=waiting_time)
+
+        start_timestamp = time.time()
 
         if not threads_exit_event.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
+            
             print("[reportThread] The event flag is not set yet, continuing operation")
 
             #Call charts creation and send them in the notifications
@@ -263,6 +274,10 @@ def periodicReport():
             notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password))
             notif_thread.start()
             notif_thread_list.append(notif_thread)
+
+        finish_timestamp = time.time()
+        waiting_time = float(config["TIME INTERVAL"]["report"]) - (finish_timestamp - start_timestamp)
+        
 
     print("[reportThread] Event flag has been set, powering off")
 
@@ -350,6 +365,9 @@ def readLogFile():
         # If it reaches EOF, it returns an empty string; set the ongoing_job flag if there was a startIngestJob declaration and no finishIngestJob one
         elif log_line == "" and has_job_started and not ongoing_job_event.is_set(): 
             ongoing_job_event.set()
+
+        if log_line == "":
+            readLogFileThread_exit_event.wait(1)
     
     print("[readLogFileThread] Event flag has been set, powering off")
 
