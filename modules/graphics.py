@@ -113,10 +113,10 @@ def ioGraph(name, data):
 		io_write_bytes.append(int(row[3]))
 
 	for i in range(0, len(io_write_bytes) - 1):
-		io_write_MBs.append(abs(math.floor((io_write_bytes[i+1] - io_write_bytes[i]) / 1000000)))
+		io_write_MBs.append(abs(math.floor((io_write_bytes[i+1] - io_write_bytes[i]) * 0.000000953674)))
 
 	for i in range(0, len(io_read_bytes) - 1):
-		io_read_MBs.append(abs(math.floor((io_read_bytes[i+1] - io_read_bytes[i]) / 1000000)))
+		io_read_MBs.append(abs(math.floor((io_read_bytes[i+1] - io_read_bytes[i]) * 0.000000953674)))
 
 	x = deque(times)
 	x.popleft()
