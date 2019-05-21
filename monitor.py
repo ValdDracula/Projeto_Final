@@ -172,25 +172,11 @@ def checkProcesses():
         add_updates_record(cpuRecord, IORecord, memoryRecord)
 
         #Send notifications if...
-        if cpuUsage < int(config["CPU USAGE"]["min"], 10):
-            if cpu_occurrences_min == int(config["NOTIFICATIONS"]["cpu_usage"]):
-                cpu_min_notif_data = retrieve_cpu_values_notif()
-                cpuUsageGraph("cpu_notif_min", cpu_min_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]), xNumValues)
-                lastCpuValue = cpu_min_notif_data[-1][0]
-                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, True))
-                notif_thread.start()
-                print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
-                cpu_occurrences_min = 0
-            else:
-                cpu_occurrences_min += 1
-        else:
-            cpu_occurrences_min = 0
-
 
         if cpuUsage > int(config["CPU USAGE"]["max"], 10):
             if cpu_occurrences_max == int(config["NOTIFICATIONS"]["cpu_usage"]):
                 cpu_max_notif_data = retrieve_cpu_values_notif()
-                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]), xNumValues)
+                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["max"]), xNumValues)
                 lastCpuValue = cpu_max_notif_data[-1][0]
                 notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, False))
                 notif_thread.start()
@@ -202,24 +188,10 @@ def checkProcesses():
             cpu_occurrences_max = 0
         #TODO: Create IO anomaly notification and call it here
 
-        if totalMemoryUsage / 1000000 < int(config["MEMORY"]["min"]):
-            if memory_occurrences_min == int(config["NOTIFICATIONS"]["memory_usage"]):
-                memory_min_notif_data = retrieve_memory_values_notif()
-                memoryUsageGraph("memory_notif_min", memory_min_notif_data, int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]), xNumValues)
-                lastMemoryValue = int(memory_min_notif_data[-1][0]) / 1000000
-                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, True))
-                notif_thread.start()
-                print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
-                memory_occurrences_min = 0
-            else:
-                memory_occurrences_min += 1
-        else:
-            memory_occurrences_min = 0
-
         if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
             if memory_occurrences_max == int(config["NOTIFICATIONS"]["memory_usage"]):
                 memory_max_notif_data = retrieve_memory_values_notif()
-                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["min"]),int(config["MEMORY"]["max"]), xNumValues)
+                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["max"]), xNumValues)
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
                 notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, False))
                 notif_thread.start()
@@ -289,15 +261,15 @@ def createGraphic(id):
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["min"]), int(config["CPU USAGE"]["max"]), xNumValues)
+    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["max"]), xNumValues)
     cpuCoresGraph("cpu_cores", cpuData, xNumValues)
     cpuThreadsGraph("cpu_threads", cpuData, xNumValues)
     cpuTimeGraph("cpu_time", cpuData, xNumValues)
     ioGraph("io", ioData, xNumValues)
-    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["min"]), int(config["MEMORY"]["max"]), xNumValues)
+    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["max"]), xNumValues)
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
-    id = int(row[4]) + 1
+    id = int(row[4])
     return id
 
 def terminateReadLogFileThread(readLogFileThread):

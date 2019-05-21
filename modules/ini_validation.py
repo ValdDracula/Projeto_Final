@@ -2,7 +2,7 @@ import configparser, re
 from pathlib import Path
 
 sections = ['CPU USAGE', 'MEMORY', 'SMTP', 'TIME INTERVAL', 'AUTOPSY CASE']
-cpu_mem_keys = ['min', 'max']
+cpu_mem_keys = ['max']
 notify_keys = ['smtp_server', 'sender_email', 'receiver_email']
 time_keys = ['process', 'report']
 case_keys = ['working_directory']
@@ -40,20 +40,10 @@ def iniValidator(iniFile):
         #Check all int values
         #.isdigit() doesn't allow negative values
 
-        if not iniFile["CPU USAGE"]["min"].isdigit() and int(iniFile["CPU USAGE"]["min"]) > 100:
-            return "Invalid INI file - Invalid type [CPU USAGE] min = {} (should be an integer between 0 and 100)".format(iniFile["CPU USAGE"]["min"])
-
-        cpuUsage_min = int(iniFile["CPU USAGE"]["min"])
-
         if not iniFile["CPU USAGE"]["max"].isdigit() and int(iniFile["CPU USAGE"]["max"]) > 100:
             return "Invalid INI file - Invalid type [CPU USAGE] max = {} (should be an integer between 0 and 100)".format(iniFile["CPU USAGE"]["max"])
 
         cpuUsage_max = int(iniFile["CPU USAGE"]["max"])
-
-        if not iniFile["MEMORY"]["min"].isdigit():
-            return "Invalid INI file - Invalid type [MEMORY] min = {} (should be a positive integer)".format(iniFile["MEMORY"]["min"])
-
-        memory_min = int(iniFile["MEMORY"]["min"])
 
         if not iniFile["MEMORY"]["max"].isdigit():
             return "Invalid INI file - Invalid type [MEMORY] max = {} (should be a positive integer)".format(iniFile["MEMORY"]["max"])

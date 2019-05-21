@@ -9,7 +9,7 @@ import math
 style.use('fivethirtyeight')
 #TODO: Median values in graphics
 
-def cpuUsageGraph(name, data, min, max, xNumValues):
+def cpuUsageGraph(name, data, max, xNumValues):
     times = []
     cpu_usages = []
     date = None
@@ -23,7 +23,6 @@ def cpuUsageGraph(name, data, min, max, xNumValues):
     ax.xaxis.set_major_formatter(xfmt)
     plt.plot(times, cpu_usages, label="Autopsy", linewidth=0.7)
     plt.locator_params(axis='x', nbins=xNumValues)
-    plt.axhline(min, label="Minimum CPU Usage ({}%)".format(min), linestyle='--', color='g', linewidth=2)
     plt.axhline(max, label="Maximum CPU Usage ({}%)".format(max), linestyle='--', color='r', linewidth=2)
     plt.xlabel("Time")
     plt.ylabel("CPU Usage (%)")
@@ -45,7 +44,6 @@ def cpuCoresGraph(name, data, xNumValues):
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
-	#ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 	plt.plot(times, cpu_cores, label="Autopsy", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
@@ -102,36 +100,41 @@ def cpuTimeGraph(name, data, xNumValues):
 
 def ioGraph(name, data, xNumValues):
 	times = []
-	#io_write_count = []
-	#io_read_count = []
 	io_read_bytes = []
+	io_read_MBs = []
 	io_write_bytes = []
+	io_write_MBs = []
 	date = None
 	for row in data:
 		date = datetime.fromtimestamp(row[6])
 		times.append(date)
-		#io_read_count.append(row[1])
-		#io_write_count.append(row[2])
-		io_read_bytes.append(int(row[2]) / 1000000)
-		io_write_bytes.append(int(row[3]) / 1000000)
+		io_read_bytes.append(int(row[2]))
+		io_write_bytes.append(int(row[3]))
+
+	for i in range(0, len(io_write_bytes) - 1):
+		io_write_MBs.append(abs(math.floor(io_write_bytes[i+1] - io_write_bytes[i])))
+
+	for i in range(0, len(io_read_bytes) - 1):
+		io_read_MBs.append(abs(math.floor(io_read_bytes[i+1] - io_read_bytes[i])))
+
 	plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	#plt.plot(times, io_read_count, label="Autopsy read count")
 	#plt.plot(times, io_write_count, label="Autopsy write count")
-	plt.plot(times, io_read_bytes, label="Autopsy read MB", linewidth=0.7)
-	plt.plot(times, io_write_bytes, label="Autopsy write MB", linewidth=0.7)
+	plt.plot(times, io_read_MBs, label="Autopsy read MB/s", linewidth=0.7)
+	plt.plot(times, io_write_MBs, label="Autopsy write MB/s", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
-	plt.ylabel("MBytes")
+	plt.ylabel("MB/s")
 	plt.title("IO read/write MBytes (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
 
-def memoryUsageGraph(name, data, min, max, xNumValues):
+def memoryUsageGraph(name, data, max, xNumValues):
 	#Needs pagefaults
 	totalMemory = int(virtual_memory()[0]) / 1000000
 	times = []
@@ -147,7 +150,6 @@ def memoryUsageGraph(name, data, min, max, xNumValues):
 	ax.xaxis.set_major_formatter(xfmt)
 	plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
 	plt.locator_params(axis='x', nbins=xNumValues)
-	plt.axhline(min, label="Minimum Memory Usage ({}MB)".format(min), linestyle='--', color='g', linewidth=2)
 	plt.axhline(max, label="Maximum Memory Usage ({}MB)".format(max), linestyle='--', color='r', linewidth=2)
 	plt.xlabel("Time")
 	plt.ylabel("Memory usage (MB)")

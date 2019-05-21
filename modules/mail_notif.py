@@ -9,38 +9,6 @@ port = 465  # SSL
 # Secure SSL Context
 context = ssl.create_default_context()
 
-def createMemMinNotif(config, memoryValue):
-	html_memory_notif = """<style>.center {{
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 50%;
-}}</style>
-<h1 style="text-align: center; font-size: 50px;"><strong>Memory Notification</strong></h1>
-<p>&nbsp;</p>
-<h2>WARNING:</h2>
-<p style="padding-left: 60px;">Memory usage is lower than minimum value established ({}MB).</p>
-<p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}MB</strong></p>
-<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["MEMORY"]["min"], math.floor(memoryValue))
-
-	message = MIMEMultipart("related")
-	message["Subject"] = "Memory notification"
-	message["From"] = "noreply@MonAutopsy.pt"
-	msgAlternative = MIMEMultipart('alternative')
-	message.attach(msgAlternative)
-
-	part1 = MIMEText(html_memory_notif, "html")
-	msgAlternative.attach(part1)
-
-	fp = open("memory_notif_min.png", "rb")
-	msgImage = MIMEImage(fp.read())
-	msgImage.add_header('Content-ID', '<memory_usage>')
-	message.attach(msgImage)
-	fp.close()
-
-	return message
-
-
 def createMemMaxNotif(config, memoryValue):
 	html_memory_notif = """<style>.center {{
   display: block;
@@ -71,38 +39,6 @@ def createMemMaxNotif(config, memoryValue):
 	fp.close()
 
 	return message
-
-def createCpuMinNotif(config, cpuValue):
-	html_cpu_notif = """<style>.center {{
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 50%;
-}}</style>
-<h1 style="text-align: center; font-size: 50px;"><strong>CPU Notification</strong></h1>
-<p>&nbsp;</p>
-<h2>WARNING:</h2>
-<p style="padding-left: 60px;">CPU usage is lower than minimum value established ({}%).</p>
-<p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["CPU USAGE"]["min"], cpuValue)
-
-	message = MIMEMultipart("related")
-	message["Subject"] = "CPU notification"
-	message["From"] = "noreply@MonAutopsy.pt"
-	msgAlternative = MIMEMultipart('alternative')
-	message.attach(msgAlternative)
-
-	part1 = MIMEText(html_cpu_notif, "html")
-	msgAlternative.attach(part1)
-
-	fp = open("cpu_notif_min.png", "rb")
-	msgImage = MIMEImage(fp.read())
-	msgImage.add_header('Content-ID', '<cpu_usage>')
-	message.attach(msgImage)
-	fp.close()
-
-	return message
-
 
 def createCpuMaxNotif(config, cpuValue):
 	html_cpu_notif = """<style>.center {{
@@ -274,19 +210,13 @@ def createPeriodicReport(config):
 
 	return message
 
-def send_cpu_notif(config, SMTPServer, senderEmail, receiverEmail, password, cpuValue, min):
-	if min is True:
-		message = createCpuMinNotif(config, cpuValue)
-	else:
-		message = createCpuMaxNotif(config, cpuValue)
+def send_cpu_notif(config, SMTPServer, senderEmail, receiverEmail, password, cpuValue):
+	message = createCpuMaxNotif(config, cpuValue)
 
 	send_mail(SMTPServer, senderEmail, receiverEmail, password, message)
 
-def send_memory_notif(config, SMTPServer, senderEmail, receiverEmail, password, memoryValue, min):
-	if min is True:
-		message = createMemMinNotif(config, memoryValue)
-	else:
-		message = createMemMaxNotif(config, memoryValue)
+def send_memory_notif(config, SMTPServer, senderEmail, receiverEmail, password, memoryValue):
+	message = createMemMaxNotif(config, memoryValue)
 
 	send_mail(SMTPServer, senderEmail, receiverEmail, password, message)
 
