@@ -2,7 +2,9 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-import math
+import math, os, socket, psutil
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
 
 port = 465  # SSL
 
@@ -10,6 +12,8 @@ port = 465  # SSL
 context = ssl.create_default_context()
 
 def createMemMaxNotif(config, memoryValue):
+	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
+
 	html_memory_notif = """<style>.center {{
   display: block;
   margin-left: auto;
@@ -18,13 +22,19 @@ def createMemMaxNotif(config, memoryValue):
 }}</style>
 <h1 style="text-align: center; font-size: 50px;"><strong>Memory Notification</strong></h1>
 <p>&nbsp;</p>
+<h2>General information</h2>
+<p><strong>Machine name: </strong>{}</p>
+<p><strong>IP Address: </strong>{}</p>
+<p><strong>Free disk space: </strong>{}</p>
+<p><strong>Autopsy case name: </strong>{}</p>
+<p>&nbsp;</p>
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">Memory usage is higher than maximum value established ({}MB).</p>
 <p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}MB</strong></p>
-<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["MEMORY"]["max"], math.floor(memoryValue))
+<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] / 1000000000, 2)) + "GB", s.getsockname()[0], caseName, config["MEMORY"]["max"], math.floor(memoryValue))
 
 	message = MIMEMultipart("related")
-	message["Subject"] = "Memory notification"
+	message["Subject"] = str(caseName) + ": " + "Memory notification"
 	message["From"] = "noreply@MonAutopsy.pt"
 	msgAlternative = MIMEMultipart('alternative')
 	message.attach(msgAlternative)
@@ -41,6 +51,8 @@ def createMemMaxNotif(config, memoryValue):
 	return message
 
 def createCpuMaxNotif(config, cpuValue):
+	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
+
 	html_cpu_notif = """<style>.center {{
   display: block;
   margin-left: auto;
@@ -49,13 +61,19 @@ def createCpuMaxNotif(config, cpuValue):
 }}</style>
 <h1 style="text-align: center; font-size: 50px;"><strong>CPU Notification</strong></h1>
 <p>&nbsp;</p>
+<h2>General information</h2>
+<p><strong>Machine name: </strong>{}</p>
+<p><strong>IP Address: </strong>{}</p>
+<p><strong>Free disk space: </strong>{}</p>
+<p><strong>Autopsy case name: </strong>{}</p>
+<p>&nbsp;</p>
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">CPU usage is lower than maximum value established ({}%).</p>
 <p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(config["CPU USAGE"]["max"], cpuValue)
+<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] / 1000000000, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], cpuValue)
 
 	message = MIMEMultipart("related")
-	message["Subject"] = "CPU notification"
+	message["Subject"] = str(caseName) + ": " + "CPU notification"
 	message["From"] = "noreply@MonAutopsy.pt"
 	msgAlternative = MIMEMultipart('alternative')
 	message.attach(msgAlternative)
@@ -72,6 +90,7 @@ def createCpuMaxNotif(config, cpuValue):
 	return message
 
 def createPeriodicReport(config):
+	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
 
 	html_periodic = """
 	<style>
@@ -97,6 +116,12 @@ def createPeriodicReport(config):
 	}}
 	</style>
 	<h1 style="text-align: center; font-size: 50px;"><strong>Periodic Report</strong></h1>
+	<p>&nbsp;</p>
+	<h2>General information</h2>
+	<p><strong>Machine name: </strong>{}</p>
+	<p><strong>Free disk space: </strong>{}</p>
+	<p><strong>IP Address: </strong>{}</p>
+	<p><strong>Autopsy case name: </strong>{}</p>
 	<p>&nbsp;</p>
 	<h2>Configurations:</h2>
 	<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
@@ -151,10 +176,10 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] / 1000000000, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 	message = MIMEMultipart("related")
-	message["Subject"] = "Periodic Report"
+	message["Subject"] = str(caseName) + ": " + "Periodic Report"
 	message["From"] = "noreply@MonAutopsy.pt"
 	msgAlternative = MIMEMultipart('alternative')
 	message.attach(msgAlternative)
