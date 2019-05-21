@@ -87,9 +87,9 @@ def checkProcesses():
     lastProcessesInfo = dict()
 
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
-        print("[checkProcessesThread] The event flag is not set yet, continuing operation")
         start_timestamp = time.time()
         update_timeTuple = (round(start_timestamp),)
+        print("[" + time.strftime("%d/%m/%Y - %H:%M:%S", time.gmtime(start_timestamp)) + " - " + str(start_timestamp) + "]" + "[checkProcessesThread] The event flag is not set yet, continuing operation")
 
         cpuUsage = 0.0
 
@@ -99,9 +99,11 @@ def checkProcesses():
         processesMemoryInfo = []
         totalThreads = 0
 
-        for lastProcPID, lastProcInfo in lastProcessesInfo.items():
-            if not psutil.pid_exists(lastProcPID):
-                print("[checkProcessesThread] Process with PID " + lastProcPID + " closed from last iteration to this one.")
+        lastProcessesList = []
+
+        for lastProc, lastProcInfo in lastProcessesInfo.items():
+            if not lastProc.is_running():
+                print("[checkProcessesThread] Process with PID " + str(lastProc.pid) + " closed from last iteration to this one.")
                 #cpu_times()
                 cpuTimeClosedProcesses += int(lastProcInfo[0].user + lastProcInfo[0].system) 
 
@@ -112,7 +114,12 @@ def checkProcesses():
                 IOWriteBytesClosedProcesses += lastProcInfo[1].write_bytes
 
                 #memory_full_info()
-                pageFaultsClosedProcesses += lastProcInfo[2].num_page_faults 
+                pageFaultsClosedProcesses += lastProcInfo[2].num_page_faults
+
+                lastProcessesList.append(lastProc)
+
+        for lastProc in lastProcessesList:
+            lastProcessesInfo.pop(lastProc)
 
         #Try catch here in case the mainProcess dies
         try:
@@ -142,8 +149,8 @@ def checkProcesses():
                 processesIOCounters.append(procIOCounters)
                 processesMemoryInfo.append(procMemoryInfo)
 
-                if proc.pid not in lastProcessesInfo:
-                    lastProcessesInfo[proc.pid] = (procCPUTimes, procIOCounters, procMemoryInfo)
+                if proc not in lastProcessesInfo.keys():
+                    lastProcessesInfo[proc] = (procCPUTimes, procIOCounters, procMemoryInfo)
 
             except psutil.NoSuchProcess:
                 if not mainProcess.is_running():
