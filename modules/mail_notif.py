@@ -31,7 +31,7 @@ def createMemMaxNotif(config, memoryValue):
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">Memory usage is higher than maximum value established ({}MB).</p>
 <p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}MB</strong></p>
-<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] / 1000000000, 2)) + "GB", s.getsockname()[0], caseName, config["MEMORY"]["max"], math.floor(memoryValue))
+<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["MEMORY"]["max"], math.floor(memoryValue))
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "Memory notification"
@@ -70,7 +70,7 @@ def createCpuMaxNotif(config, cpuValue):
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">CPU usage is lower than maximum value established ({}%).</p>
 <p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] / 1000000000, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], cpuValue)
+<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], cpuValue)
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "CPU notification"
@@ -176,7 +176,7 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] / 1000000000, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "Periodic Report"
