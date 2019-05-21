@@ -121,12 +121,6 @@ def ioGraph(name, data):
 	x = deque(times)
 	x.popleft()
 	x = list(x)
-	print("Read IO MB/s")
-	print(io_read_MBs)
-	print("Write IO MB/s")
-	print(io_write_MBs)
-	print("Time")
-	print(list(x))
 
 	#plt.xticks(rotation=25)
 	ax = plt.gca()
