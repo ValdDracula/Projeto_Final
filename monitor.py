@@ -89,6 +89,7 @@ def checkProcesses():
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         print("[checkProcessesThread] The event flag is not set yet, continuing operation")
         start_timestamp = time.time()
+        update_timeTuple = (round(start_timestamp),)
 
         cpuUsage = 0.0
 
@@ -196,7 +197,7 @@ def checkProcesses():
 
         #Add all the records to the database
 
-        add_updates_record(cpuRecord, IORecord, memoryRecord)
+        add_updates_record(cpuRecord, IORecord, memoryRecord, update_timeTuple)
 
         #Send notifications if...
 
