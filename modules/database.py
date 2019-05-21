@@ -89,6 +89,8 @@ def create_table(conn, create_table_sql):
     try:
         c = conn.cursor()
         c.execute(create_table_sql)
+        c.close()
+        conn.close()
     except sqlite3.Error as e:
         print(e)
 
