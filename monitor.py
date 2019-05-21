@@ -101,26 +101,6 @@ def checkProcesses():
 
         lastProcessesList = []
 
-        for lastProc, lastProcInfo in lastProcessesInfo.items():
-            if not lastProc.is_running():
-                print("[checkProcessesThread] Process with PID " + str(lastProc.pid) + " closed from last iteration to this one.")
-                #cpu_times()
-                cpuTimeClosedProcesses += int(lastProcInfo[0].user + lastProcInfo[0].system) 
-
-                #io_counters()
-                IOReadCountClosedProcesses += lastProcInfo[1].read_count 
-                IOReadBytesClosedProcesses += lastProcInfo[1].read_bytes
-                IOWriteCountClosedProcesses += lastProcInfo[1].write_count
-                IOWriteBytesClosedProcesses += lastProcInfo[1].write_bytes
-
-                #memory_full_info()
-                pageFaultsClosedProcesses += lastProcInfo[2].num_page_faults
-
-                lastProcessesList.append(lastProc)
-
-        for lastProc in lastProcessesList:
-            lastProcessesInfo.pop(lastProc)
-
         #Try catch here in case the mainProcess dies
         try:
             processes = mainProcess.children(recursive=True) #Get all processes descendants
@@ -144,13 +124,13 @@ def checkProcesses():
                 procCPUTimes = proc.cpu_times()
                 procIOCounters = proc.io_counters()
                 procMemoryInfo = proc.memory_full_info()
+                procName = proc.name()
 
                 processesCPUTimes.append(procCPUTimes)
                 processesIOCounters.append(procIOCounters)
                 processesMemoryInfo.append(procMemoryInfo)
 
-                if proc not in lastProcessesInfo.keys():
-                    lastProcessesInfo[proc] = (procCPUTimes, procIOCounters, procMemoryInfo)
+                lastProcessesInfo[proc] = (procCPUTimes, procIOCounters, procMemoryInfo, procName)
 
             except psutil.NoSuchProcess:
                 if not mainProcess.is_running():
@@ -162,6 +142,26 @@ def checkProcesses():
 
         if errorOccurred:
             continue
+
+        for lastProc, lastProcInfo in lastProcessesInfo.items():
+            if not lastProc.is_running():
+                print("[checkProcessesThread] Process with PID " + str(lastProc.pid) + " and name '" + lastProcInfo[3] + "' closed from last iteration to the current one.")
+                #cpu_times()
+                cpuTimeClosedProcesses += int(lastProcInfo[0].user + lastProcInfo[0].system) 
+
+                #io_counters()
+                IOReadCountClosedProcesses += lastProcInfo[1].read_count
+                IOReadBytesClosedProcesses += lastProcInfo[1].read_bytes
+                IOWriteCountClosedProcesses += lastProcInfo[1].write_count
+                IOWriteBytesClosedProcesses += lastProcInfo[1].write_bytes
+
+                #memory_full_info()
+                pageFaultsClosedProcesses += lastProcInfo[2].num_page_faults
+
+                lastProcessesList.append(lastProc)
+
+        for lastProc in lastProcessesList:
+            lastProcessesInfo.pop(lastProc)
 
         #Getting 1 record of cpu, which is the sum of the cpu fields of the processes
 
