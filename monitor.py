@@ -147,7 +147,7 @@ def checkProcesses():
             if not lastProc.is_running():
                 print("[checkProcessesThread] Process with PID " + str(lastProc.pid) + " and name '" + lastProcInfo[3] + "' closed from last iteration to the current one.")
                 #cpu_times()
-                cpuTimeClosedProcesses += int(lastProcInfo[0].user + lastProcInfo[0].system) 
+                cpuTimeClosedProcesses += (lastProcInfo[0].user + lastProcInfo[0].system)
 
                 #io_counters()
                 IOReadCountClosedProcesses += lastProcInfo[1].read_count
@@ -174,7 +174,7 @@ def checkProcesses():
             totalUserTime += CPUTimes.user
             totalSystemTime += CPUTimes.system
 
-        totalCPUTime = int(totalUserTime + totalSystemTime) + cpuTimeClosedProcesses
+        totalCPUTime = round(totalUserTime + totalSystemTime + cpuTimeClosedProcesses)
 
         cpuRecord = (cpuUsage, processesNumCores, totalThreads, totalCPUTime)
 
