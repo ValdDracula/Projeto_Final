@@ -292,7 +292,7 @@ def createGraphic(id):
     cpuCoresGraph("cpu_cores", cpuData, xNumValues)
     cpuThreadsGraph("cpu_threads", cpuData, xNumValues)
     cpuTimeGraph("cpu_time", cpuData, xNumValues)
-    ioGraph("io", ioData, xNumValues)
+    ioGraph("io", ioData)
     memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["max"]), xNumValues)
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
@@ -482,7 +482,7 @@ def main():
                 terminateReadLogFileThread(readLogFileThread)
 
         print("[MainThread] Goodbye")
-        sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password)
+        #sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password)
 
 #EXECUTION
 if __name__ == '__main__':
