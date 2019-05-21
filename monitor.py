@@ -75,11 +75,16 @@ if xNumValues > 11:
 #Process(es) monitorization
 def checkProcesses():
     errorOccurred = False
-    cpu_occurrences_min = 0
     cpu_occurrences_max = 0
-    memory_occurrences_min = 0
     memory_occurrences_max = 0
     notif_thread = None
+    cpuTimeClosedProcesses = 0
+    IOReadCountClosedProcesses = 0
+    IOReadBytesClosedProcesses = 0
+    IOWriteCountClosedProcesses = 0
+    IOWriteBytesClosedProcesses = 0
+    pageFaultsClosedProcesses = 0
+    lastProcessesInfo = dict()
 
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         print("[checkProcessesThread] The event flag is not set yet, continuing operation")
@@ -92,6 +97,21 @@ def checkProcesses():
         processesIOCounters = []
         processesMemoryInfo = []
         totalThreads = 0
+
+        for lastProcPID, lastProcInfo in lastProcessesInfo.items():
+            if not psutil.pid_exists(lastProcPID):
+                print("[checkProcessesThread] Process with PID " + lastProcPID + " closed from last iteration to this one.")
+                #cpu_times()
+                cpuTimeClosedProcesses += int(lastProcInfo[0].user + lastProcInfo[0].system) 
+
+                #io_counters()
+                IOReadCountClosedProcesses += lastProcInfo[1].read_count 
+                IOReadBytesClosedProcesses += lastProcInfo[1].read_bytes
+                IOWriteCountClosedProcesses += lastProcInfo[1].write_count
+                IOWriteBytesClosedProcesses += lastProcInfo[1].write_bytes
+
+                #memory_full_info()
+                pageFaultsClosedProcesses += lastProcInfo[2].num_page_faults 
 
         #Try catch here in case the mainProcess dies
         try:
@@ -113,9 +133,17 @@ def checkProcesses():
 
                 processesCPUAfinnity.update(proc.cpu_affinity())
 
-                processesCPUTimes.append(proc.cpu_times())
-                processesIOCounters.append(proc.io_counters())
-                processesMemoryInfo.append(proc.memory_full_info())
+                procCPUTimes = proc.cpu_times()
+                procIOCounters = proc.io_counters()
+                procMemoryInfo = proc.memory_full_info()
+
+                processesCPUTimes.append(procCPUTimes)
+                processesIOCounters.append(procIOCounters)
+                processesMemoryInfo.append(procMemoryInfo)
+
+                if proc.pid not in lastProcessesInfo:
+                    lastProcessesInfo[proc.pid] = (procCPUTimes, procIOCounters, procMemoryInfo)
+
             except psutil.NoSuchProcess:
                 if not mainProcess.is_running():
                     print("All processes are dead!!!")
@@ -138,16 +166,16 @@ def checkProcesses():
             totalUserTime += CPUTimes.user
             totalSystemTime += CPUTimes.system
 
-        totalCPUTime = int(totalUserTime + totalSystemTime)
+        totalCPUTime = int(totalUserTime + totalSystemTime) + cpuTimeClosedProcesses
 
         cpuRecord = (cpuUsage, processesNumCores, totalThreads, totalCPUTime)
 
         #Getting 1 record of IO, which is the sum of the IO fields of the processes
 
-        totalReadCount = 0
-        totalWriteCount = 0
-        totalReadBytes = 0
-        totalWriteBytes = 0
+        totalReadCount = IOReadCountClosedProcesses
+        totalWriteCount = IOWriteCountClosedProcesses
+        totalReadBytes = IOReadBytesClosedProcesses
+        totalWriteBytes = IOWriteBytesClosedProcesses
 
         for IOCounter in processesIOCounters:
             totalReadCount += IOCounter.read_count
@@ -155,11 +183,10 @@ def checkProcesses():
             totalReadBytes += IOCounter.read_bytes
             totalWriteBytes += IOCounter.write_bytes
         
-
         IORecord = (totalReadCount, totalWriteCount, totalReadBytes, totalWriteBytes)
 
         totalMemoryUsage = 0
-        totalPageFaults = 0
+        totalPageFaults = pageFaultsClosedProcesses
 
         for memoryInfo in processesMemoryInfo:
             totalMemoryUsage += memoryInfo.uss
