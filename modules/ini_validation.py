@@ -60,12 +60,6 @@ def iniValidator(iniFile):
 
         time_report = int(iniFile["TIME INTERVAL"]["report"])
 
-        if cpuUsage_min >= cpuUsage_max:
-            return "Invalid INI file - Invalid type [CPU USAGE] min = {}; max = {} (minimum cpu usage can't be equal or greater than maximum cpu usage)".format(cpuUsage_min, cpuUsage_max)
-
-        if memory_min >= memory_max:
-            return "Invalid INI file - Invalid type [MEMORY] min = {}; max = {} (minimum memory usage can't be equal or greater than maximum memory usage)".format(memory_min, memory_max)
-
         if time_process > time_report:
             return "Invalid INI file - Invalid type [TIME INTERVAL] process = {}; report = {} (report time interval can't be lower than process time interval)".format(time_process, time_report)
 

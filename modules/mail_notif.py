@@ -103,7 +103,6 @@ def createPeriodicReport(config):
 		<thead>
 			<tr>
 				<th style="font-weight: 800; border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU/Memory configuration</th>
-				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Minimum</th>
 				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum</th>
 			</tr>
 		</thead>
@@ -111,11 +110,9 @@ def createPeriodicReport(config):
 				<tr>
 				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU usage</td>
 				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} %</td>
-				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} %</td>
 			</tr>
 			<tr>
 				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Virtual memory usage</td>
-				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} MB</td>
 				<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} MB</td>
 			</tr>
 		</tbody>
@@ -154,7 +151,7 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(config["CPU USAGE"]["min"], config["CPU USAGE"]["max"], config["MEMORY"]["min"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 	message = MIMEMultipart("related")
 	message["Subject"] = "Periodic Report"
