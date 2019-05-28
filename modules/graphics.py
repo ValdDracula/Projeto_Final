@@ -14,22 +14,28 @@ def cpuUsageGraph(name, data, max, xNumValues):
 	times = []
 	cpu_usages = []
 	date = None
+	cpu_usages_median = 0
 	for row in data:
 		date = datetime.fromtimestamp(row[6])
 		times.append(date)
 		cpu_usages.append(math.floor(row[0]))
+	for i in range(0, len(cpu_usages)):
+		cpu_usages_median += cpu_usages[i]
+	cpu_usages_median = round(cpu_usages_median / len(cpu_usages), 2)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	plt.plot(times, cpu_usages, label="Autopsy", linewidth=0.7)
-	plt.xticks(times, rotation=25)
-	plt.locator_params(axis='x', nbins=xNumValues)
-	plt.axhline(max, label="Maximum CPU Usage ({}%)".format(max), linestyle='--', color='r', linewidth=2)
+	#plt.xticks(times, rotation=25)
+	#plt.locator_params(axis='x', nbins=xNumValues)
+	plt.axhline(max, label="Maximum CPU Usage ({}%)".format(max), linestyle='--', color='r', linewidth=1)
+	plt.axhline(cpu_usages_median, label="Median CPU Usage ({}%)".format(cpu_usages_median), linestyle='--', color='b', linewidth=1)
 	plt.xlabel("Time")
 	plt.ylabel("CPU Usage (%)")
 	plt.ylim(0, 100)
 	plt.title("CPU Usage (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
@@ -41,17 +47,18 @@ def cpuCoresGraph(name, data, xNumValues):
 		date = datetime.fromtimestamp(row[6])
 		times.append(date)
 		cpu_cores.append(math.floor(row[1]))
-	plt.xticks(times, rotation=25)
+	#plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	plt.plot(times, cpu_cores, label="Autopsy", linewidth=0.7)
-	plt.locator_params(axis='x', nbins=xNumValues)
+	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
 	plt.ylabel("CPU cores")
 	plt.yticks(list(range(0, 21, 4)))
 	plt.title("CPU affinity number (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
@@ -63,17 +70,18 @@ def cpuThreadsGraph(name, data, xNumValues):
 		date = datetime.fromtimestamp(row[6])
 		times.append(date)
 		cpu_threads.append(math.floor(row[2]))
-	plt.xticks(times, rotation=25)
+	#plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	plt.plot(times, cpu_threads, label="Autopsy", linewidth=0.7)
-	plt.locator_params(axis='x', nbins=xNumValues)
+	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
 	plt.ylabel("CPU threads (%)")
 	#plt.ylim(0, 100)
 	plt.title("CPU threads (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
@@ -85,17 +93,18 @@ def cpuTimeGraph(name, data, xNumValues):
 		date = datetime.fromtimestamp(row[6])
 		times.append(date)
 		cpu_times.append(math.floor(row[3]))
-	plt.xticks(times, rotation=25)
+	#plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	plt.plot(times, cpu_times, label="Autopsy", linewidth=0.7)
-	plt.locator_params(axis='x', nbins=xNumValues)
+	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
 	plt.ylabel("CPU time (seconds)")
 	#plt.ylim(0, 100)
 	plt.title("CPU time (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
@@ -105,6 +114,8 @@ def ioGraph(name, data):
 	io_read_MBs = []
 	io_write_bytes = []
 	io_write_MBs = []
+	io_write_MBs_median = 0
+	io_read_MBs_median = 0
 	date = None
 	for row in data:
 		date = datetime.fromtimestamp(row[6])
@@ -118,6 +129,14 @@ def ioGraph(name, data):
 	for i in range(0, len(io_read_bytes) - 1):
 		io_read_MBs.append(abs(math.floor((io_read_bytes[i+1] - io_read_bytes[i]) * 0.000000953674)))
 
+	for i in range(0, len(io_write_MBs)):
+		io_write_MBs_median += io_write_MBs[i]
+
+	for i in range(0, len(io_read_MBs)):
+		io_read_MBs_median += io_read_MBs[i]
+
+	io_read_MBs_median = round(io_read_MBs_median / len(io_read_MBs), 2)
+	io_write_MBs_median = round(io_write_MBs_median / len(io_write_MBs), 2)
 	x = deque(times)
 	x.popleft()
 	x = list(x)
@@ -130,6 +149,8 @@ def ioGraph(name, data):
 	#plt.plot(times, io_write_count, label="Autopsy write count")
 	plt.plot(x, io_read_MBs, label="Autopsy read MB/s", linewidth=0.7)
 	plt.plot(x, io_write_MBs, label="Autopsy write MB/s", linewidth=0.7)
+	plt.axhline(io_write_MBs_median, label="Median Write MB/s ({}MB/s)".format(io_write_MBs_median), linestyle='--', color='b', linewidth=1)
+	plt.axhline(io_read_MBs_median, label="Median Read MB/s ({}MB/s)".format(io_read_MBs_median), linestyle='--', color='y', linewidth=1)
 	plt.ylim(bottom=0)
 	plt.xlabel("Time")
 	plt.ylabel("MB/s")
@@ -150,17 +171,18 @@ def memoryUsageGraph(name, data, max, xNumValues):
 		date = datetime.fromtimestamp(row[4])
 		times.append(date)
 		mem_usages.append(int(row[0]) / 1000000)
-	plt.xticks(times, rotation=25)
+	#plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
 	plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
-	plt.locator_params(axis='x', nbins=xNumValues)
-	plt.axhline(max, label="Maximum Memory Usage ({}MB)".format(max), linestyle='--', color='r', linewidth=2)
+	#plt.locator_params(axis='x', nbins=xNumValues)
+	plt.axhline(max, label="Maximum Memory Usage ({}MB)".format(max), linestyle='--', color='r', linewidth=1)
 	plt.xlabel("Time")
 	plt.ylabel("Memory usage (MB)")
 	plt.ylim(0, totalMemory)
 	plt.title("Memory usage (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
