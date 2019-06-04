@@ -89,7 +89,7 @@ def checkProcesses():
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         start_timestamp = time.time()
         update_timeTuple = (round(start_timestamp),)
-        print("[" + time.strftime("%d/%m/%Y - %H:%M:%S", time.gmtime(start_timestamp)) + " - " + str(start_timestamp) + "]" + "[checkProcessesThread] The event flag is not set yet, continuing operation")
+        print("[" + time.strftime("%d/%m/%Y - %H:%M:%S", time.localtime(start_timestamp)) + " - " + str(start_timestamp) + "]" + "[checkProcessesThread] The event flag is not set yet, continuing operation")
 
         cpuUsage = 0.0
 

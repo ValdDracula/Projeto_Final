@@ -2,7 +2,8 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-import math, os, socket, psutil
+from modules.database import retrieve_latest_job
+import math, os, socket, psutil, time
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 
@@ -122,6 +123,7 @@ def createPeriodicReport(config):
 	<p><strong>IP Address: </strong>{}</p>
 	<p><strong>Free disk space: </strong>{}</p>
 	<p><strong>Autopsy case name: </strong>{}</p>
+	<p><strong>Job start time: </strong>{}</p>
 	<p>&nbsp;</p>
 	<h2>Configurations:</h2>
 	<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
@@ -176,7 +178,7 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", caseName, time.strftime("%d/%m/%Y - %H:%M:%S", time.localtime(retrieve_latest_job()['start_time'])), config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 
 

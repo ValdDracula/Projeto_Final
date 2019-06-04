@@ -224,6 +224,20 @@ def add_updates_record(cpu_record, IO_record, memory_record, update_timeTuple):
 
 # -----------RETRIEVING VALUES FROM TABLES--------------
 
+def retrieve_latest_job():
+    conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
+
+    try:
+        c = conn.cursor()
+        c.execute('''SELECT * FROM jobs ORDER BY id DESC LIMIT 0,1''')
+        row = c.fetchone()
+        c.close()
+        conn.close()
+        return row
+    except sqlite3.Error as e:
+        print(e)
+
 # All combined CPU, IO and memory updates
 def retrieve_updates():
     conn = create_connection(database)
