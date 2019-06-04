@@ -178,6 +178,8 @@ def createPeriodicReport(config):
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
 	<p>&nbsp;</p>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
+
+
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "Periodic Report"
 	message["From"] = "noreply@MonAutopsy.pt"
@@ -252,16 +254,19 @@ def send_mail(SMTPServer,senderEmail, receiverEmail, password, message):
 		for mail in receiverEmail:
 			server.sendmail(senderEmail, mail, message.as_string())
 
-def sendErrorMail(SMTPServer,senderEmail, receiverEmail, password):
+def sendErrorMail(SMTPServer,senderEmail, receiverEmail, password, config):
 	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
 		server.login(senderEmail, password)
-		html = """<h1 style="text-align: center; font-size: 50px;"><strong>ERROR, GO CHECK IT</strong></h1>"""
-		message = MIMEMultipart("related")
-		message["Subject"] = "ERROR - PROGRAM SHUTDOWN"
-		msgAlternative = MIMEMultipart('alternative')
-		message.attach(msgAlternative)
-		html_email = MIMEText(html, "html")
-		msgAlternative.attach(html_email)
+		#html = """<h1 style="text-align: center; font-size: 50px;"><strong>ERROR, GO CHECK IT</strong></h1>"""
+		#message = MIMEMultipart("related")
+		#message["Subject"] = "ERROR - PROGRAM SHUTDOWN"
+		#msgAlternative = MIMEMultipart('alternative')
+		#message.attach(msgAlternative)
+		#html_email = MIMEText(html, "html")
+		#msgAlternative.attach(html_email)
+		#TODO: Mudar para uma mensagem com mais detalhe
+		message = createPeriodicReport(config)
+		message["Subject"] = "ERROR"
 		for mail in receiverEmail:
 			server.sendmail(senderEmail, mail, message.as_string())
 
