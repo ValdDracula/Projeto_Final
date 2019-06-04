@@ -440,12 +440,12 @@ def main():
                     job_error_event.clear()
 
                 terminateThreads([checkProcessesThread, reportThread])
+                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config)
                 continue
 
             # If it gets here, it means one or more of the threads has ended unexpectedly
 
             print("[MainThread] Something unexpected happened, shutting down program...")
-
 
             allThreads = []
 
@@ -466,7 +466,8 @@ def main():
             if readLogFileThread.is_alive():
                 print("[MainThread] readLogFileThread is still running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
-            
+
+            sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config)
             errorOccurred = True
 
         print("[MainThread] Goodbye")
@@ -489,8 +490,9 @@ def main():
                 print("[MainThread] There's one thread running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
 
+        sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password)
         print("[MainThread] Goodbye")
-        #sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password)
+
 
 #EXECUTION
 if __name__ == '__main__':
