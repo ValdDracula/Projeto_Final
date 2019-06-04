@@ -401,12 +401,21 @@ def main():
 
             if not readLogFileThread.is_alive():
                 print("[MainThread] readLogFileThread has stopped unexpectedly, shutting down program...")
+                print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
+
+                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
                 errorOccurred = True
+
                 continue
             elif not mainProcess.is_running():
                 print("[MainThread] The main Autopsy process has stopped, shutting down program...")
+
+                print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
+                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
+                
                 terminateReadLogFileThread(readLogFileThread)
                 errorOccurred = True
+
                 continue
 
             # At this point, the flag has been set and there are no errors, which means there's an ongoing job
@@ -428,19 +437,42 @@ def main():
             #    time.sleep(100)
 
             # Alternative loop that will detect if any of the threads have ended unexpectedly and if the job has finished
-            while checkProcessesThread.is_alive() and reportThread.is_alive() and readLogFileThread.is_alive() and ongoing_job_event.is_set():
+            while checkProcessesThread.is_alive() and reportThread.is_alive() and readLogFileThread.is_alive() and ongoing_job_event.is_set() and mainProcess.is_running():
                 time.sleep(0.1)
 
             # If the flag has been reset, which means the job has ended and no errors occured
             if not ongoing_job_event.is_set():
                 if not job_error_event.is_set():
                     print("[MainThread] The job has finished, shutting down threads...")
+                    terminateThreads([checkProcessesThread, reportThread])
+
+                    # SEND EMAIL NOTIFYING AUTOPSY JOB HAS ENDED HERE
+
                 else:
                     print("[MainThread] AUTOPSY ERROR - the job could not be started, shutting down threads...")
                     job_error_event.clear()
+                    terminateThreads([checkProcessesThread, reportThread])
+
+                    print("[MainThread] Sending email notifying there was a problem during an Autopsy job execution")
+
+                    notif_thread = threading.Thread(target=sendErrorMail, args=(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "Autopsy Job Execution Error", "There was a problem in a Autopsy job execution and it has stopped."))
+                    notif_thread.start()
+
+                continue
+
+            # Check if the main Autopsy process stopped
+
+            if not mainProcess.is_running():
+                print("[MainThread] The main Autopsy process has stopped, shutting down program...")
+                
+                print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
+                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
 
                 terminateThreads([checkProcessesThread, reportThread])
-                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config)
+                terminateReadLogFileThread(readLogFileThread)
+
+                errorOccurred = True
+
                 continue
 
             # If it gets here, it means one or more of the threads has ended unexpectedly
@@ -466,8 +498,10 @@ def main():
             if readLogFileThread.is_alive():
                 print("[MainThread] readLogFileThread is still running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
+            
 
-            sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config)
+            print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
+            sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
             errorOccurred = True
 
         print("[MainThread] Goodbye")
@@ -490,7 +524,8 @@ def main():
                 print("[MainThread] There's one thread running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
 
-        sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password)
+        print("[MainThread] Sending email notifying MonAutopsy has been closed")
+        sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Termination", "MonAutopsy has been terminated locally.")
         print("[MainThread] Goodbye")
 
 

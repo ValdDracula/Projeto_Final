@@ -31,7 +31,7 @@ def createMemMaxNotif(config, memoryValue):
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">Memory usage is higher than maximum value established ({}MB).</p>
 <p style="padding-left: 60px;">Current memory value is&nbsp;&asymp; <strong>{}MB</strong></p>
-<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["MEMORY"]["max"], math.floor(memoryValue))
+<img src="cid:memory_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), s.getsockname()[0], str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", caseName, config["MEMORY"]["max"], math.floor(memoryValue))
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "Memory notification"
@@ -70,7 +70,7 @@ def createCpuMaxNotif(config, cpuValue):
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">CPU usage is lower than maximum value established ({}%).</p>
 <p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], cpuValue)
+<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), s.getsockname()[0], str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", caseName, config["CPU USAGE"]["max"], cpuValue)
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "CPU notification"
@@ -119,8 +119,8 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2>General information</h2>
 	<p><strong>Machine name: </strong>{}</p>
-	<p><strong>Free disk space: </strong>{}</p>
 	<p><strong>IP Address: </strong>{}</p>
+	<p><strong>Free disk space: </strong>{}</p>
 	<p><strong>Autopsy case name: </strong>{}</p>
 	<p>&nbsp;</p>
 	<h2>Configurations:</h2>
@@ -176,7 +176,7 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(socket.gethostname(), str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", s.getsockname()[0], caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", caseName, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 
 
@@ -234,6 +234,37 @@ def createPeriodicReport(config):
 
 	return message
 
+def createErrorNotif(config, title, message):
+	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
+
+	html_error_notif = """<style>.center {{
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 50%;
+	}}</style>
+	<h1 style="text-align: center; font-size: 50px;"><strong>{} Notification</strong></h1>
+	<p>&nbsp;</p>
+	<h2>General information</h2>
+	<p><strong>Machine name: </strong>{}</p>
+	<p><strong>IP Address: </strong>{}</p>
+	<p><strong>Free disk space: </strong>{}</p>
+	<p><strong>Autopsy case name: </strong>{}</p>
+	<p>&nbsp;</p>
+	<h2>WARNING:</h2>
+	<p style="padding-left: 60px;">{}</p>""".format(title, socket.gethostname(), s.getsockname()[0], str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB", caseName, message)
+
+	message = MIMEMultipart("related")
+	message["Subject"] = str(caseName) + ": " + title + " Notification"
+	message["From"] = "noreply@MonAutopsy.pt"
+	msgAlternative = MIMEMultipart('alternative')
+	message.attach(msgAlternative)
+
+	part1 = MIMEText(html_error_notif, "html")
+	msgAlternative.attach(part1)
+
+	return message
+
 def send_cpu_notif(config, SMTPServer, senderEmail, receiverEmail, password, cpuValue):
 	message = createCpuMaxNotif(config, cpuValue)
 
@@ -254,21 +285,10 @@ def send_mail(SMTPServer,senderEmail, receiverEmail, password, message):
 		for mail in receiverEmail:
 			server.sendmail(senderEmail, mail, message.as_string())
 
-def sendErrorMail(SMTPServer,senderEmail, receiverEmail, password, config):
-	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
-		server.login(senderEmail, password)
-		#html = """<h1 style="text-align: center; font-size: 50px;"><strong>ERROR, GO CHECK IT</strong></h1>"""
-		#message = MIMEMultipart("related")
-		#message["Subject"] = "ERROR - PROGRAM SHUTDOWN"
-		#msgAlternative = MIMEMultipart('alternative')
-		#message.attach(msgAlternative)
-		#html_email = MIMEText(html, "html")
-		#msgAlternative.attach(html_email)
-		#TODO: Mudar para uma mensagem com mais detalhe
-		message = createPeriodicReport(config)
-		message["Subject"] = "ERROR"
-		for mail in receiverEmail:
-			server.sendmail(senderEmail, mail, message.as_string())
+def sendErrorMail(SMTPServer, senderEmail, receiverEmail, password, config, title, message):
+	mail_message = createErrorNotif(config, title, message)
+
+	send_mail(SMTPServer, senderEmail, receiverEmail, password, mail_message)
 
 def check_authentication(SMTPServer, senderEmail, password):
 	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:

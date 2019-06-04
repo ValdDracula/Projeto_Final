@@ -66,6 +66,7 @@ def createTables():
     if conn is not None:
         create_table(conn, sql_create_jobs_table)
         create_table(conn, sql_create_updates_table)
+        conn.close()
     # create_table(conn, sql_create_cpu_table)
     # create_table(conn, sql_create_IO_table)
     # create_table(conn, sql_create_memory_table)
@@ -90,7 +91,6 @@ def create_table(conn, create_table_sql):
         c = conn.cursor()
         c.execute(create_table_sql)
         c.close()
-        conn.close()
     except sqlite3.Error as e:
         print(e)
 
