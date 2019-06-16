@@ -10,7 +10,7 @@ from collections import deque
 style.use('fivethirtyeight')
 #TODO: Median values in graphics
 #
-def cpuUsageGraph(name, data, max, xNumValues):
+def cpuUsageGraph(name, data, max):
 	times = []
 	cpu_usages = []
 	date = None
@@ -39,7 +39,7 @@ def cpuUsageGraph(name, data, max, xNumValues):
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
-def cpuCoresGraph(name, data, xNumValues):
+def cpuCoresGraph(name, data):
 	times = []
 	cpu_cores = []
 	date = None
@@ -62,7 +62,7 @@ def cpuCoresGraph(name, data, xNumValues):
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
-def cpuThreadsGraph(name, data, xNumValues):
+def cpuThreadsGraph(name, data):
 	times = []
 	cpu_threads = []
 	date = None
@@ -77,7 +77,7 @@ def cpuThreadsGraph(name, data, xNumValues):
 	plt.plot(times, cpu_threads, label="Autopsy", linewidth=0.7)
 	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
-	plt.ylabel("CPU threads (%)")
+	plt.ylabel("CPU threads")
 	#plt.ylim(0, 100)
 	plt.title("CPU threads (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
@@ -85,7 +85,7 @@ def cpuThreadsGraph(name, data, xNumValues):
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
 
-def cpuTimeGraph(name, data, xNumValues):
+def cpuTimeGraph(name, data):
 	times = []
 	cpu_times = []
 	date = None
@@ -161,16 +161,21 @@ def ioGraph(name, data):
 	plt.cla()
 
 
-def memoryUsageGraph(name, data, max, xNumValues):
+def memoryUsageGraph(name, data, max):
 	#Needs pagefaults
 	totalMemory = int(virtual_memory()[0]) / 1000000
 	times = []
 	mem_usages = []
 	date = None
+	memory_usage_median = 0
 	for row in data:
 		date = datetime.fromtimestamp(row[4])
 		times.append(date)
 		mem_usages.append(int(row[0]) / 1000000)
+	for i in range(0, len(mem_usages)):
+		memory_usage_median += mem_usages[i]
+
+	memory_usage_median = round(memory_usage_median / len(mem_usages), 2)
 	#plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
@@ -178,6 +183,7 @@ def memoryUsageGraph(name, data, max, xNumValues):
 	plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
 	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.axhline(max, label="Maximum Memory Usage ({}MB)".format(max), linestyle='--', color='r', linewidth=1)
+	plt.axhline(memory_usage_median, label="Median Memory Usage ({}MB)".format(memory_usage_median), linestyle='--', color='b',linewidth=1)
 	plt.xlabel("Time")
 	plt.ylabel("Memory usage (MB)")
 	plt.ylim(0, totalMemory)

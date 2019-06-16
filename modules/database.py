@@ -292,7 +292,6 @@ def retrieve_cpu_values():
     except sqlite3.Error as e:
         print(e)
 
-
 # Certain CPU updates, with id >= startId
 def retrieve_cpu_values_report(startId):
     idTuple = (startId,)
@@ -317,7 +316,7 @@ def retrieve_cpu_values_report(startId):
     except sqlite3.Error as e:
         print(e)
 
-
+# CPU values on notifications
 def retrieve_cpu_values_notif():
     conn = create_connection(database)
 
@@ -340,8 +339,28 @@ def retrieve_cpu_values_notif():
     except sqlite3.Error as e:
         print(e)
 
+# CPU values final report and errors
+def retrieve_cpu_values_final():
+    conn = create_connection(database)
 
-# All memory updates
+    try:
+        c = conn.cursor()
+        c.execute('''SELECT MAX(id) FROM jobs''')
+        currentJobId = c.fetchone()[0]
+
+        c.execute('''SELECT cpu_usage_percentage, num_cores, threads, cpu_time, id, job_id, update_time
+        					FROM updates 
+        					WHERE job_id = ?''', (currentJobId,))
+        rows = c.fetchall()
+        c.close()
+        conn.close()
+
+        return rows
+    except sqlite3.Error as e:
+        print(e)
+
+
+# All IO updates
 def retrieve_IO_values():
     conn = create_connection(database)
 
@@ -357,8 +376,7 @@ def retrieve_IO_values():
     except sqlite3.Error as e:
         print(e)
 
-
-# Certain memory updates, with id >= startId
+# Certain IO updates, with id >= startId
 def retrieve_IO_values_report(startId):
     idTuple = (startId,)
     conn = create_connection(database)
@@ -382,8 +400,28 @@ def retrieve_IO_values_report(startId):
     except sqlite3.Error as e:
         print(e)
 
+# IO values on final report and errors
+def retrieve_IO_values_final():
+    conn = create_connection(database)
 
-# All IO updates
+    try:
+        c = conn.cursor()
+        c.execute('''SELECT MAX(id) FROM jobs''')
+        currentJobId = c.fetchone()[0]
+
+        c.execute('''SELECT read_count, write_count, read_bytes, write_bytes, id, job_id, update_time 
+        					FROM updates 
+        					WHERE job_id = ?''', (currentJobId,))
+        rows = c.fetchall()
+        c.close()
+        conn.close()
+
+        return rows
+    except sqlite3.Error as e:
+        print(e)
+
+
+# All memory updates
 def retrieve_memory_values():
     conn = create_connection(database)
 
@@ -399,8 +437,7 @@ def retrieve_memory_values():
     except sqlite3.Error as e:
         print(e)
 
-
-# Certain IO updates, with id >= startId
+# Certain memory updates, with id >= startId
 def retrieve_memory_values_report(startId):
     idTuple = (startId,)
     conn = create_connection(database)
@@ -424,7 +461,7 @@ def retrieve_memory_values_report(startId):
     except sqlite3.Error as e:
         print(e)
 
-
+# Memory values on notifications
 def retrieve_memory_values_notif():
     conn = create_connection(database)
 
@@ -446,5 +483,25 @@ def retrieve_memory_values_notif():
 
         return rows
 
+    except sqlite3.Error as e:
+        print(e)
+
+#Memory values on final report and errors
+def retrieve_memory_values_final():
+    conn = create_connection(database)
+
+    try:
+        c = conn.cursor()
+        c.execute('''SELECT MAX(id) FROM jobs''')
+        currentJobId = c.fetchone()[0]
+
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
+        					FROM updates 
+        					WHERE job_id = ?''', (currentJobId,))
+        rows = c.fetchall()
+        c.close()
+        conn.close()
+
+        return rows
     except sqlite3.Error as e:
         print(e)

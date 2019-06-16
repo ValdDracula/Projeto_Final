@@ -3,8 +3,7 @@
 import psutil, threading, time, configparser
 from getpass import getpass
 #from arguments import arguments
-from modules.database import add_jobs_record, update_jobs_record, add_updates_record, createTables
-from modules.database import retrieve_cpu_values_report, retrieve_memory_values_report, retrieve_IO_values_report, retrieve_memory_values_notif, retrieve_cpu_values_notif
+from modules.database import *
 from modules.graphics import *
 from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMail
 from modules.screenshot import screenshotAutopsy
@@ -211,7 +210,7 @@ def checkProcesses():
         if cpuUsage > int(config["CPU USAGE"]["max"], 10):
             if cpu_occurrences_max == int(config["NOTIFICATIONS"]["cpu_usage"]):
                 cpu_max_notif_data = retrieve_cpu_values_notif()
-                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["max"]), xNumValues)
+                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["max"]))
                 lastCpuValue = cpu_max_notif_data[-1][0]
                 notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, False))
                 notif_thread.start()
@@ -226,7 +225,7 @@ def checkProcesses():
         if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
             if memory_occurrences_max == int(config["NOTIFICATIONS"]["memory_usage"]):
                 memory_max_notif_data = retrieve_memory_values_notif()
-                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["max"]), xNumValues)
+                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["max"]))
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
                 notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, False))
                 notif_thread.start()
@@ -296,16 +295,28 @@ def createGraphic(id):
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["max"]), xNumValues)
-    cpuCoresGraph("cpu_cores", cpuData, xNumValues)
-    cpuThreadsGraph("cpu_threads", cpuData, xNumValues)
-    cpuTimeGraph("cpu_time", cpuData, xNumValues)
+    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["max"]))
+    cpuCoresGraph("cpu_cores", cpuData)
+    cpuThreadsGraph("cpu_threads", cpuData)
+    cpuTimeGraph("cpu_time", cpuData)
     ioGraph("io", ioData)
-    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["max"]), xNumValues)
+    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[4])
     return id
+
+def createGraphicTotal():
+    cpuData = retrieve_cpu_values_final()
+    memoryData = retrieve_memory_values_final()
+    ioData = retrieve_IO_values_final()
+    cpuUsageGraph("cpu_usage_final", cpuData, int(config["CPU USAGE"]["max"]))
+    cpuCoresGraph("cpu_cores_final", cpuData)
+    cpuThreadsGraph("cpu_threads_final", cpuData)
+    cpuTimeGraph("cpu_time_final", cpuData)
+    ioGraph("io_final", ioData)
+    memoryUsageGraph("memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
+
 
 def terminateReadLogFileThread(readLogFileThread):
     print("[MainThread] Setting event flag for readLogFileThread")
@@ -501,6 +512,8 @@ def main():
             
 
             print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
+            # Create charts and send error report
+            createGraphicTotal()
             sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
             errorOccurred = True
 
@@ -524,8 +537,11 @@ def main():
                 print("[MainThread] There's one thread running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
 
-        print("[MainThread] Sending email notifying MonAutopsy has been closed")
-        sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Termination", "MonAutopsy has been terminated locally.")
+        if ongoing_job_event.is_set():
+            print("[MainThread] Sending email notifying MonAutopsy has been closed")
+            # Create charts and send error report
+            createGraphicTotal()
+            sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password,config, "MonAutopsy Termination", "MonAutopsy has been terminated locally.")
         print("[MainThread] Goodbye")
 
 
