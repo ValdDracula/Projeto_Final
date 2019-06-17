@@ -35,7 +35,7 @@ def screenshotAutopsy(id):
     else:
         autoit.win_activate(wantedWindow)
         autoit.win_set_state(wantedWindow, flag=autoit.properties.SW_MAXIMIZE)
-        pyautogui.screenshot("autopsy.png")
+        pyautogui.screenshot("miscellaneous/autopsy.png")
         autoit.win_set_state(wantedWindow, flag=autoit.properties.SW_MINIMIZE)
 
 

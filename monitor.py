@@ -295,12 +295,12 @@ def createGraphic(id):
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
-    cpuUsageGraph("cpu_usage", cpuData, int(config["CPU USAGE"]["max"]))
-    cpuCoresGraph("cpu_cores", cpuData)
-    cpuThreadsGraph("cpu_threads", cpuData)
-    cpuTimeGraph("cpu_time", cpuData)
-    ioGraph("io", ioData)
-    memoryUsageGraph("memory_usage", memoryData,int(config["MEMORY"]["max"]))
+    cpuUsageGraph("miscellaneous/cpu_usage", cpuData, int(config["CPU USAGE"]["max"]))
+    cpuCoresGraph("miscellaneous/cpu_cores", cpuData)
+    cpuThreadsGraph("miscellaneous/cpu_threads", cpuData)
+    cpuTimeGraph("miscellaneous/cpu_time", cpuData)
+    ioGraph("miscellaneous/io", ioData)
+    memoryUsageGraph("miscellaneous/memory_usage", memoryData,int(config["MEMORY"]["max"]))
     #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
     row = cpuData[len(cpuData) - 1]
     id = int(row[4])
@@ -310,12 +310,12 @@ def createGraphicTotal():
     cpuData = retrieve_cpu_values_final()
     memoryData = retrieve_memory_values_final()
     ioData = retrieve_IO_values_final()
-    cpuUsageGraph("cpu_usage_final", cpuData, int(config["CPU USAGE"]["max"]))
-    cpuCoresGraph("cpu_cores_final", cpuData)
-    cpuThreadsGraph("cpu_threads_final", cpuData)
-    cpuTimeGraph("cpu_time_final", cpuData)
-    ioGraph("io_final", ioData)
-    memoryUsageGraph("memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
+    cpuUsageGraph("miscellaneous/cpu_usage_final", cpuData, int(config["CPU USAGE"]["max"]))
+    cpuCoresGraph("miscellaneous/cpu_cores_final", cpuData)
+    cpuThreadsGraph("miscellaneous/cpu_threads_final", cpuData)
+    cpuTimeGraph("miscellaneous/cpu_time_final", cpuData)
+    ioGraph("miscellaneous/io_final", ioData)
+    memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
 
 
 def terminateReadLogFileThread(readLogFileThread):
@@ -512,7 +512,7 @@ def main():
             
 
             print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
-            # Create charts and send error report
+            # Create charts and send notif
             createGraphicTotal()
             sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
             errorOccurred = True
@@ -539,7 +539,7 @@ def main():
 
         if ongoing_job_event.is_set():
             print("[MainThread] Sending email notifying MonAutopsy has been closed")
-            # Create charts and send error report
+            # Create charts and send notif
             createGraphicTotal()
             sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password,config, "MonAutopsy Termination", "MonAutopsy has been terminated locally.")
         print("[MainThread] Goodbye")
