@@ -514,6 +514,7 @@ def main():
             
 
             print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
+
             # Create charts and send notif
             createGraphicTotal()
             sendErrorMail(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")

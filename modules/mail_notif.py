@@ -598,9 +598,13 @@ def send_final_report(password):
 def send_mail(password, message):
 	with smtplib.SMTP_SSL(config["SMTP"]["smtp_server"], port, context=context) as server:
 		server.login(config["SMTP"]["sender_email"], password)
-		receivers = str.split(config["SMTP"]["receiver_email"], ", ")
-		for mail in receivers:
-			server.sendmail(config["SMTP"]["sender_email"], mail, message.as_string())
+		if ", " in config["SMTP"]["receiver_email"]:
+			receivers = str.split(config["SMTP"]["receiver_email"], ", ")
+		else:
+			receivers = config["SMTP"]["receiver_email"]
+		server.sendmail(config["SMTP"]["sender_email"], receivers, message.as_string())
+		#for mail in receivers:
+		#	server.sendmail(config["SMTP"]["sender_email"], mail, message.as_string())
 
 def sendErrorMail(password, title, message):
 

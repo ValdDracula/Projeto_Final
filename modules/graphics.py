@@ -8,8 +8,7 @@ from psutil import virtual_memory
 import math
 from collections import deque
 style.use('fivethirtyeight')
-#TODO: Median values in graphics
-#
+
 def cpuUsageGraph(name, data, max):
 	times = []
 	cpu_usages = []
