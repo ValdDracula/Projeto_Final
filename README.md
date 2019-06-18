@@ -51,7 +51,7 @@ MonAutopsy uses a INI file to store all the configurations necessary for it's co
 
 |      |Process                |Report| 
 |------|---------------------------|------------------------------------------
-|Time Interval|Interval (in seconds) for monitorization operations. It is recommended to keep this value at 1. Most statistics are defined as rates per second.            |Interval (in seconds) in which the periodic report is sent to the receiver email
+|Time Interval|Interval (in seconds) for monitorization operations. It is recommended to keep this value at 1. Most statistics are set as values per second.            |Interval (in seconds) in which the periodic report is sent to the receiver email
 
 #
 
