@@ -280,6 +280,7 @@ def retrieve_updates_report(startId):
 # All CPU updates
 def retrieve_cpu_values():
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
@@ -292,10 +293,32 @@ def retrieve_cpu_values():
     except sqlite3.Error as e:
         print(e)
 
+def retrieve_first_cpu_value():
+    conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
+
+    try:
+        c = conn.cursor()
+        c.execute('''SELECT MAX(id) FROM jobs''')
+
+        job_idTuple = (c.fetchone()[0],)
+
+        c.execute('''SELECT cpu_usage_percentage, num_cores, threads, cpu_time, id, job_id, update_time
+					FROM updates 
+					WHERE id = 1 AND job_id = ?''', job_idTuple)
+        row = c.fetchone()
+        c.close()
+        conn.close()
+
+        return row
+    except sqlite3.Error as e:
+        print(e)
+
 # Certain CPU updates, with id >= startId
 def retrieve_cpu_values_report(startId):
     idTuple = (startId,)
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
@@ -319,6 +342,7 @@ def retrieve_cpu_values_report(startId):
 # CPU values on notifications
 def retrieve_cpu_values_notif():
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
@@ -342,6 +366,7 @@ def retrieve_cpu_values_notif():
 # CPU values final report and errors
 def retrieve_cpu_values_final():
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()

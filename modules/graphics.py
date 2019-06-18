@@ -87,16 +87,27 @@ def cpuThreadsGraph(name, data):
 def cpuTimeGraph(name, data):
 	times = []
 	cpu_times = []
+	cpu_times_rate = []
 	date = None
 	for row in data:
 		date = datetime.fromtimestamp(row[6])
 		times.append(date)
 		cpu_times.append(math.floor(row[3]))
+
+	for i in range(0, len(cpu_times) - 1):
+		cpu_times_rate.append(cpu_times[i+1] - cpu_times[i])
+
+	last_cpu_time = cpu_times[(len(cpu_times) - 1)]
+
+	x = deque(times)
+	x.popleft()
+	x = list(x)
+
 	#plt.xticks(times, rotation=25)
 	ax = plt.gca()
 	xfmt = mdates.DateFormatter('%H:%M:%S')
 	ax.xaxis.set_major_formatter(xfmt)
-	plt.plot(times, cpu_times, label="Autopsy", linewidth=0.7)
+	plt.plot(x, cpu_times_rate, label="Autopsy", linewidth=0.7)
 	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
 	plt.ylabel("CPU time (seconds)")
@@ -106,6 +117,8 @@ def cpuTimeGraph(name, data):
 	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
+
+	return last_cpu_time
 
 def ioGraph(name, data):
 	times = []
