@@ -1,6 +1,6 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, time, configparser
+import psutil, threading, configparser
 from getpass import getpass
 #from arguments import arguments
 from modules.database import *
@@ -27,7 +27,7 @@ if type(validation) is not bool:
 authenticated = False
 while authenticated is False :
     smtp_password = getpass(prompt='Enter SMTP password: ')
-    authenticated = check_authentication(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], smtp_password)
+    authenticated = check_authentication(smtp_password)
 
 #Usar 'config' para definir todos os intervalos de valores a monitorizar
 
@@ -212,7 +212,7 @@ def checkProcesses():
                 cpu_max_notif_data = retrieve_cpu_values_notif()
                 cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["max"]))
                 lastCpuValue = cpu_max_notif_data[-1][0]
-                notif_thread = threading.Thread(target=send_cpu_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, False))
+                notif_thread = threading.Thread(target=send_cpu_notif, args=(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastCpuValue, False))
                 notif_thread.start()
                 print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 cpu_occurrences_max = 0
@@ -227,7 +227,7 @@ def checkProcesses():
                 memory_max_notif_data = retrieve_memory_values_notif()
                 memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["max"]))
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
-                notif_thread = threading.Thread(target=send_memory_notif, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, False))
+                notif_thread = threading.Thread(target=send_memory_notif, args=(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, lastMemoryValue, False))
                 notif_thread.start()
                 print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 memory_occurrences_max = 0
@@ -277,7 +277,7 @@ def periodicReport():
             #Call charts creation and send them in the notifications
             id = createGraphic(id)
             screenshotAutopsy(mainProcess.pid)
-            notif_thread = threading.Thread(target=send_report, args=(config, config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password))
+            notif_thread = threading.Thread(target=send_report, args=(smtp_password,))
             notif_thread.start()
             notif_thread_list.append(notif_thread)
 
@@ -414,7 +414,7 @@ def main():
                 print("[MainThread] readLogFileThread has stopped unexpectedly, shutting down program...")
                 print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
 
-                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
+                sendErrorMail(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
                 errorOccurred = True
 
                 continue
@@ -422,7 +422,7 @@ def main():
                 print("[MainThread] The main Autopsy process has stopped, shutting down program...")
 
                 print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
-                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
+                sendErrorMail(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
                 
                 terminateReadLogFileThread(readLogFileThread)
                 errorOccurred = True
@@ -466,7 +466,7 @@ def main():
 
                     print("[MainThread] Sending email notifying there was a problem during an Autopsy job execution")
 
-                    notif_thread = threading.Thread(target=sendErrorMail, args=(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "Autopsy Job Execution Error", "There was a problem in a Autopsy job execution and it has stopped."))
+                    notif_thread = threading.Thread(target=sendErrorMail, args=(smtp_password, "Autopsy Job Execution Error", "There was a problem in a Autopsy job execution and it has stopped."))
                     notif_thread.start()
 
                 continue
@@ -477,7 +477,7 @@ def main():
                 print("[MainThread] The main Autopsy process has stopped, shutting down program...")
                 
                 print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
-                sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
+                sendErrorMail(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
 
                 terminateThreads([checkProcessesThread, reportThread])
                 terminateReadLogFileThread(readLogFileThread)
@@ -514,7 +514,7 @@ def main():
             print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
             # Create charts and send notif
             createGraphicTotal()
-            sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password, config, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
+            sendErrorMail(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
             errorOccurred = True
 
         print("[MainThread] Goodbye")
@@ -541,7 +541,7 @@ def main():
             print("[MainThread] Sending email notifying MonAutopsy has been closed")
             # Create charts and send notif
             createGraphicTotal()
-            sendErrorMail(config["SMTP"]["smtp_server"], config["SMTP"]["sender_email"], receivers, smtp_password,config, "MonAutopsy Termination", "MonAutopsy has been terminated locally.")
+            sendErrorMail(smtp_password, "MonAutopsy Termination", "MonAutopsy has been terminated locally.")
         print("[MainThread] Goodbye")
 
 

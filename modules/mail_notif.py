@@ -3,16 +3,20 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 from modules.database import retrieve_latest_job
-import math, os, socket, psutil, time
+import math, os, socket, psutil, time, configparser
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 
 port = 465  # SSL
 
+#Read config
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 # Secure SSL Context
 context = ssl.create_default_context()
 
-def createMemMaxNotif(config, memoryValue):
+def getInfo():
 	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
 
 	disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
@@ -20,17 +24,25 @@ def createMemMaxNotif(config, memoryValue):
 		round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] * 0.000000000931323, 2)) + "GB"
 	remainingDisks = str()
 	dps = psutil.disk_partitions()
-	for i in range(0, len(dps)):
-		dp = dps[i]
-		if str(dp.device).__contains__("\\"):
-			if str(dp.device).replace("\\", "") != disk_autopsy:
-				remainingDisks += str(dp.device) + " - " + str(
-					round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
-			else:
-				disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy
-		elif str(dp.device) != disk_autopsy:
-			remainingDisks += str(dp.device) + " - " + str(
-				round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
+	try:
+		for i in range(0, len(dps)):
+			dp = dps[i]
+			if dp.fstype != '' and 'cdrom' not in dp.opts:
+				if str(dp.device).__contains__("\\"):
+					if str(dp.device).replace("\\", "") != disk_autopsy:
+						remainingDisks += str(dp.device) + " - " + str(round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
+					else:
+						disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy
+				elif str(dp.device) != disk_autopsy:
+					remainingDisks += str(dp.device) + " - " + str(round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
+	except PermissionError:
+		pass
+
+	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks
+
+def createMemMaxNotif(memoryValue):
+
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getInfo()
 
 	html_memory_notif = """<style>.center {{
   display: block;
@@ -80,25 +92,9 @@ def createMemMaxNotif(config, memoryValue):
 
 	return message
 
-def createCpuMaxNotif(config, cpuValue):
-	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
+def createCpuMaxNotif(cpuValue):
 
-	disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
-	diskUsageAutopsy = str(
-		round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] * 0.000000000931323, 2)) + "GB"
-	remainingDisks = str()
-	dps = psutil.disk_partitions()
-	for i in range(0, len(dps)):
-		dp = dps[i]
-		if str(dp.device).__contains__("\\"):
-			if str(dp.device).replace("\\", "") != disk_autopsy:
-				remainingDisks += str(dp.device) + " - " + str(
-					round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
-			else:
-				disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy
-		elif str(dp.device) != disk_autopsy:
-			remainingDisks += str(dp.device) + " - " + str(
-				round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getInfo()
 
 	html_cpu_notif = """<style>.center {{
   display: block;
@@ -148,25 +144,9 @@ def createCpuMaxNotif(config, cpuValue):
 
 	return message
 
-def createPeriodicReport(config):
-	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
+def createPeriodicReport():
 
-	disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
-	diskUsageAutopsy = str(
-		round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] * 0.000000000931323, 2)) + "GB"
-	remainingDisks = str()
-	dps = psutil.disk_partitions()
-	for i in range(0, len(dps)):
-		dp = dps[i]
-		if str(dp.device).__contains__("\\"):
-			if str(dp.device).replace("\\", "") != disk_autopsy:
-				remainingDisks += str(dp.device) + " - " + str(
-					round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
-			else:
-				disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy
-		elif str(dp.device) != disk_autopsy:
-			remainingDisks += str(dp.device) + " - " + str(
-				round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getInfo()
 
 	html_periodic = """
 	<style>
@@ -323,21 +303,9 @@ def createPeriodicReport(config):
 
 	return message
 
-def createErrorNotif(config, title, message):
-	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
-	disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
-	diskUsageAutopsy = str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB"
-	remainingDisks = str()
-	dps = psutil.disk_partitions()
-	for i in range(0, len(dps)):
-		dp = dps[i]
-		if str(dp.device).__contains__("\\"):
-			if str(dp.device).replace("\\", "") != disk_autopsy:
-				remainingDisks += str(dp.device) + " - " + str(round(psutil.disk_usage(dp.device)[2]  * 0.000000000931323, 2)) + "GB" + " remaining; "
-			else:
-				disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy
-		elif str(dp.device) != disk_autopsy:
-			remainingDisks += str(dp.device) + " - " + str(round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
+def createErrorNotif(title, message):
+
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getInfo()
 
 
 	html_error_notif = """<style>.center {{
@@ -347,6 +315,9 @@ def createErrorNotif(config, title, message):
 	width: 50%;
 	}}</style>
 	<h1 style="text-align: center; font-size: 50px;"><strong>{} Notification</strong></h1>
+	<p>&nbsp;</p>
+	<h2>WARNING:</h2>
+	<p style="padding-left: 60px; text-decoration: underline;">{}</p>
 	<p>&nbsp;</p>
 	<h2>General information</h2>
 	<p><strong>Machine name: </strong>{}</p>
@@ -366,9 +337,6 @@ def createErrorNotif(config, title, message):
 	</ul>
 	<p><strong>Autopsy case name: </strong>{}</p>
 	<p><strong>Job start time: </strong>{}</p>
-	<p>&nbsp;</p>
-	<h2>WARNING:</h2>
-	<p style="padding-left: 60px; text-decoration: underline;">{}</p>
 	<p>&nbsp;</p>
 	<h2>Configurations:</h2>
 	<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
@@ -470,35 +438,42 @@ def createErrorNotif(config, title, message):
 
 	return message
 
-def send_cpu_notif(config, SMTPServer, senderEmail, receiverEmail, password, cpuValue):
-	message = createCpuMaxNotif(config, cpuValue)
 
-	send_mail(SMTPServer, senderEmail, receiverEmail, password, message)
 
-def send_memory_notif(config, SMTPServer, senderEmail, receiverEmail, password, memoryValue):
-	message = createMemMaxNotif(config, memoryValue)
+def send_cpu_notif(password, cpuValue):
 
-	send_mail(SMTPServer, senderEmail, receiverEmail, password, message)
+	message = createCpuMaxNotif(cpuValue)
 
-def send_report(config, SMTPServer, senderEmail, receiverEmail, password):
-	message = createPeriodicReport(config)
-	send_mail(SMTPServer, senderEmail, receiverEmail, password, message)
+	send_mail(password, message)
 
-def send_mail(SMTPServer,senderEmail, receiverEmail, password, message):
-	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
-		server.login(senderEmail, password)
-		for mail in receiverEmail:
-			server.sendmail(senderEmail, mail, message.as_string())
+def send_memory_notif(password, memoryValue):
 
-def sendErrorMail(SMTPServer, senderEmail, receiverEmail, password, config, title, message):
-	mail_message = createErrorNotif(config, title, message)
+	message = createMemMaxNotif(memoryValue)
 
-	send_mail(SMTPServer, senderEmail, receiverEmail, password, mail_message)
+	send_mail(password, message)
 
-def check_authentication(SMTPServer, senderEmail, password):
-	with smtplib.SMTP_SSL(SMTPServer, port, context=context) as server:
+def send_report(password):
+
+	message = createPeriodicReport()
+	send_mail(password, message)
+
+def send_mail(password, message):
+	with smtplib.SMTP_SSL(config["SMTP"]["smtp_server"], port, context=context) as server:
+		server.login(config["SMTP"]["sender_email"], password)
+		receivers = str.split(config["SMTP"]["receiver_email"], ", ")
+		for mail in receivers:
+			server.sendmail(config["SMTP"]["sender_email"], mail, message.as_string())
+
+def sendErrorMail(password, title, message):
+
+	mail_message = createErrorNotif(title, message)
+
+	send_mail(password, mail_message)
+
+def check_authentication(password):
+	with smtplib.SMTP_SSL(config["SMTP"]["smtp_server"], port, context=context) as server:
 		try:
-			server.login(senderEmail, password)
+			server.login(config["SMTP"]["sender_email"], password)
 			return True
 		except smtplib.SMTPException as e:
 			print(e)
