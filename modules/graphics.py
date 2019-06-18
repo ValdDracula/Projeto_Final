@@ -5,7 +5,7 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from matplotlib import style
 from psutil import virtual_memory
-import math, numpy as np
+import math
 from collections import deque
 style.use('fivethirtyeight')
 #TODO: Median values in graphics
