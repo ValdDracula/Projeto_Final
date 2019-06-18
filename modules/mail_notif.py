@@ -16,7 +16,7 @@ config.read('config.ini')
 # Secure SSL Context
 context = ssl.create_default_context()
 
-def getInfo():
+def getBasicInfo():
 	caseName = os.path.basename(config["AUTOPSY CASE"]["working_directory"])
 
 	disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
@@ -24,16 +24,6 @@ def getInfo():
 		round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] * 0.000000000931323, 2)) + "GB"
 	remainingDisks = str()
 	dps = psutil.disk_partitions()
-	
-	start_time = retrieve_latest_job()['start_time']
-	curr_time = round(time.time())
-	elapsed_time = curr_time - start_time
-
-	elapsed_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
-
-	start_time = time.localtime(start_time)
-
-	start_cpu_time = retrieve_first_cpu_value()['cpu_time']
 
 	try:
 		for i in range(0, len(dps)):
@@ -49,11 +39,30 @@ def getInfo():
 	except PermissionError:
 		pass
 
-	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time
+	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks
+
+def getCompleteInfo(last_cpu_time):
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getBasicInfo()
+
+	start_time = retrieve_latest_job()['start_time']
+	curr_time = round(time.time())
+	elapsed_time = curr_time - start_time
+
+	elapsed_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
+
+	start_time = time.localtime(start_time)
+
+	start_cpu_time = retrieve_first_cpu_value()['cpu_time']
+
+	elapsed_cpu_time = last_cpu_time - start_cpu_time
+
+	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_cpu_time // 3600, (elapsed_cpu_time % 3600 // 60), (elapsed_cpu_time % 3600 % 60))
+
+	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str
 
 def createMemMaxNotif(memoryValue):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, start_cpu_time = getInfo()
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getBasicInfo()
 
 	html_memory_notif = """<style>.center {{
   display: block;
@@ -105,7 +114,7 @@ def createMemMaxNotif(memoryValue):
 
 def createCpuMaxNotif(cpuValue):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, start_cpu_time = getInfo()
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getBasicInfo()
 
 	html_cpu_notif = """<style>.center {{
   display: block;
@@ -157,14 +166,7 @@ def createCpuMaxNotif(cpuValue):
 
 def createPeriodicReport(last_cpu_time):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
-	
-	elapsed_time = 0
-
-	if last_cpu_time != 0:
-		elapsed_time = last_cpu_time - start_cpu_time
-
-	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str = getCompleteInfo(last_cpu_time)
 
 	html_periodic = """
 	<style>
@@ -323,12 +325,9 @@ def createPeriodicReport(last_cpu_time):
 
 	return message
 
-def createErrorNotif(title, message, last_cpu_time):
+def createErrorNotifWithData(title, message, last_cpu_time):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
-	elapsed_time = last_cpu_time - start_cpu_time
-	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
-
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str = getCompleteInfo(last_cpu_time)
 
 	html_error_notif = """<style>.center {{
 	display: block;
@@ -462,10 +461,51 @@ def createErrorNotif(title, message, last_cpu_time):
 
 	return message
 
+def createErrorNotifNoData(title, message):
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getBasicInfo()
+
+	html_error_notif = """<style>.center {{
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 50%;
+	}}</style>
+	<h1 style="text-align: center; font-size: 50px;"><strong>{} Notification</strong></h1>
+	<p>&nbsp;</p>
+	<h2>WARNING:</h2>
+	<p style="padding-left: 60px; text-decoration: underline;">{}</p>
+	<p>&nbsp;</p>
+	<h2>General information</h2>
+	<p><strong>Machine name: </strong>{}</p>
+	<p><strong>IP Address: </strong>{}</p>
+	<p><strong>Free disk space: </strong></p>
+	<ul>
+	<li>Disk being used by Autopsy:
+	<ul>
+	<li>{}</li>
+	</ul>
+	</li>
+	<li>Remaining Disks:
+	<ul>
+	<li>{}</li>
+	</ul>
+	</li>
+	</ul>
+	<p><strong>Autopsy case name: </strong>{}</p>""".format(title, message, socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName)
+
+	message = MIMEMultipart("related")
+	message["Subject"] = str(caseName) + ": " + title + " Notification"
+	message["From"] = "noreply@MonAutopsy.pt"
+	msgAlternative = MIMEMultipart('alternative')
+	message.attach(msgAlternative)
+
+	part1 = MIMEText(html_error_notif, "html")
+	msgAlternative.attach(part1)
+
+	return message
+
 def createFinalReport(last_cpu_time):
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
-	elapsed_time = last_cpu_time - start_cpu_time
-	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str = getCompleteInfo(last_cpu_time)
 
 	html_error_notif = """<style>.center {{
 		display: block;
@@ -600,7 +640,6 @@ def createFinalReport(last_cpu_time):
 	return message
 
 
-
 def send_cpu_notif(password, cpuValue):
 
 	message = createCpuMaxNotif(cpuValue)
@@ -633,9 +672,15 @@ def send_mail(password, message):
 		#for mail in receivers:
 		#	server.sendmail(config["SMTP"]["sender_email"], mail, message.as_string())
 
-def sendErrorMail(password, title, message, last_cpu_time = 0):
+def sendErrorMailWithData(password, title, message, last_cpu_time):
 
-	mail_message = createErrorNotif(title, message, last_cpu_time)
+	mail_message = createErrorNotifWithData(title, message, last_cpu_time)
+
+	send_mail(password, mail_message)
+
+def sendErrorMailNoData(password, title, message):
+
+	mail_message = createErrorNotifNoData(title, message)
 
 	send_mail(password, mail_message)
 

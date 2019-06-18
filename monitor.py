@@ -5,7 +5,7 @@ from getpass import getpass
 #from arguments import arguments
 from modules.database import *
 from modules.graphics import *
-from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMail, send_final_report
+from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMailWithData, sendErrorMailNoData, send_final_report
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
 import math
@@ -429,7 +429,7 @@ def main():
                 print("[MainThread] readLogFileThread has stopped unexpectedly, shutting down program...")
                 print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
 
-                sendErrorMail(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
+                sendErrorMailNoData(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
                 errorOccurred = True
 
                 continue
@@ -437,7 +437,7 @@ def main():
                 print("[MainThread] The main Autopsy process has stopped, shutting down program...")
 
                 print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
-                sendErrorMail(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
+                sendErrorMailNoData(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
                 
                 terminateReadLogFileThread(readLogFileThread)
                 errorOccurred = True
@@ -473,8 +473,10 @@ def main():
                     terminateThreads([checkProcessesThread, reportThread])
 
                     # SEND EMAIL NOTIFYING AUTOPSY JOB HAS ENDED HERE
+                    print("[MainThread] Sending email with the final report.")
                     last_cpu_time = createGraphicTotal()
-                    send_final_report(smtp_password, last_cpu_time)
+                    notif_thread = threading.Thread(target=send_final_report, args=(smtp_password, last_cpu_time))
+                    notif_thread.start()
 
                 else:
                     print("[MainThread] AUTOPSY ERROR - the job could not be started, shutting down threads...")
@@ -483,7 +485,7 @@ def main():
 
                     print("[MainThread] Sending email notifying there was a problem during an Autopsy job execution")
 
-                    notif_thread = threading.Thread(target=sendErrorMail, args=(smtp_password, "Autopsy Job Execution Error", "There was a problem in a Autopsy job execution and it has stopped."))
+                    notif_thread = threading.Thread(target=sendErrorMailNoData, args=(smtp_password, "Autopsy Job Execution Error", "There was a problem in a Autopsy job execution and it has stopped."))
                     notif_thread.start()
 
                 continue
@@ -495,7 +497,7 @@ def main():
                 
                 print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
                 last_cpu_time = createGraphicTotal()
-                sendErrorMail(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.", last_cpu_time)
+                sendErrorMailWithData(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.", last_cpu_time)
 
                 terminateThreads([checkProcessesThread, reportThread])
                 terminateReadLogFileThread(readLogFileThread)
@@ -533,7 +535,7 @@ def main():
 
             # Create charts and send notif
             last_cpu_time = createGraphicTotal()
-            sendErrorMail(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.", last_cpu_time)
+            sendErrorMailWithData(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.", last_cpu_time)
             errorOccurred = True
 
         print("[MainThread] Goodbye")
@@ -560,7 +562,7 @@ def main():
             print("[MainThread] Sending email notifying MonAutopsy has been closed")
             # Create charts and send notif
             last_cpu_time = createGraphicTotal()
-            sendErrorMail(smtp_password, "MonAutopsy Termination", "MonAutopsy has been terminated locally.", last_cpu_time)
+            sendErrorMailWithData(smtp_password, "MonAutopsy Termination", "MonAutopsy has been terminated locally.", last_cpu_time)
         print("[MainThread] Goodbye")
 
 
