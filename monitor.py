@@ -210,7 +210,7 @@ def checkProcesses():
         if cpuUsage > int(config["CPU USAGE"]["max"], 10):
             if cpu_occurrences_max == int(config["NOTIFICATIONS"]["cpu_usage"]):
                 cpu_max_notif_data = retrieve_cpu_values_notif()
-                cpuUsageGraph("cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["max"]))
+                cpuUsageGraph("miscellaneous/cpu_notif_max", cpu_max_notif_data, int(config["CPU USAGE"]["max"]))
                 lastCpuValue = cpu_max_notif_data[-1][0]
                 notif_thread = threading.Thread(target=send_cpu_notif, args=(smtp_password, lastCpuValue))
                 notif_thread.start()
@@ -225,7 +225,7 @@ def checkProcesses():
         if totalMemoryUsage / 1000000 > int(config["MEMORY"]["max"]):
             if memory_occurrences_max == int(config["NOTIFICATIONS"]["memory_usage"]):
                 memory_max_notif_data = retrieve_memory_values_notif()
-                memoryUsageGraph("memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["max"]))
+                memoryUsageGraph("miscellaneous/memory_notif_max", memory_max_notif_data, int(config["MEMORY"]["max"]))
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
                 notif_thread = threading.Thread(target=send_memory_notif, args=(smtp_password, lastMemoryValue))
                 notif_thread.start()
@@ -313,9 +313,10 @@ def createGraphicTotal():
     cpuUsageGraph("miscellaneous/cpu_usage_final", cpuData, int(config["CPU USAGE"]["max"]))
     cpuCoresGraph("miscellaneous/cpu_cores_final", cpuData)
     cpuThreadsGraph("miscellaneous/cpu_threads_final", cpuData)
-    cpuTimeGraph("miscellaneous/cpu_time_final", cpuData)
+    last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time", cpuData)
     ioGraph("miscellaneous/io_final", ioData)
     memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
+    return last_cpu_time
 
 
 def terminateReadLogFileThread(readLogFileThread):
@@ -458,8 +459,8 @@ def main():
                     terminateThreads([checkProcessesThread, reportThread])
 
                     # SEND EMAIL NOTIFYING AUTOPSY JOB HAS ENDED HERE
-                    createGraphicTotal()
-                    send_final_report(smtp_password)
+                    last_cpu_time = createGraphicTotal()
+                    send_final_report(smtp_password, last_cpu_time)
 
                 else:
                     print("[MainThread] AUTOPSY ERROR - the job could not be started, shutting down threads...")

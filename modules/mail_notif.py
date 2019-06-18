@@ -457,8 +457,10 @@ def createErrorNotif(title, message):
 
 	return message
 
-def createFinalReport():
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getInfo()
+def createFinalReport(last_cpu_time):
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
+	elapsed_time = last_cpu_time - start_cpu_time
+	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
 
 	html_error_notif = """<style>.center {{
 		display: block;
@@ -486,6 +488,8 @@ def createFinalReport():
 		</ul>
 		<p><strong>Autopsy case name: </strong>{}</p>
 		<p><strong>Job start time: </strong>{}</p>
+		<p><strong>Elapsed time: </strong>{}</p>
+		<p><strong>CPU elapsed time: </strong>{}</p>
 		<p>&nbsp;</p>
 		<h2>Configurations:</h2>
 		<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
@@ -539,8 +543,7 @@ def createFinalReport():
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>""".format("Final Report", socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName,
-								time.strftime("%d/%m/%Y - %H:%M:%S",
-											  time.localtime(retrieve_latest_job()['start_time'])),
+								time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str,
 								config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"],
 								config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
@@ -610,8 +613,8 @@ def send_report(password, last_cpu_time):
 	message = createPeriodicReport(last_cpu_time)
 	send_mail(password, message)
 
-def send_final_report(password):
-	message = createFinalReport()
+def send_final_report(password, last_cpu_time):
+	message = createFinalReport(last_cpu_time)
 	send_mail(password, message)
 
 def send_mail(password, message):
