@@ -35,7 +35,7 @@ MonAutopsy uses a INI file to store all the configurations necessary for it's co
 - CPU and memory Usage
 
 |                |Max						   |
-|----------------|-------------------------------|-----------------------------|
+|----------------|-------------------------------|
 |CPU Usage		           | Maximum CPU usage for a notification to be triggered           
 |Memory          | Maximum memory usage for a notification to be triggered            
 
@@ -57,9 +57,9 @@ MonAutopsy uses a INI file to store all the configurations necessary for it's co
 
 - Autopsy case settings
 
-|      |Working Case                | 
-|------|---------------------------|------------------------------------------
-|Autopsy Case|Full path directory for the current working case to monitor
+|      |Working Case                |
+|------|---------------------------|
+|Autopsy Case|Full path directory for the current working case to monitor|
 
 ### Example:
 ```ini
