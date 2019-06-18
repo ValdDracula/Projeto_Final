@@ -98,6 +98,8 @@ def cpuTimeGraph(name, data):
 	for i in range(0, len(cpu_times) - 1):
 		cpu_times_rate.append(cpu_times[i+1] - cpu_times[i])
 
+	last_cpu_time = cpu_times[(len(cpu_times) - 1)]
+
 	x = deque(times)
 	x.popleft()
 	x = list(x)
@@ -116,6 +118,8 @@ def cpuTimeGraph(name, data):
 	plt.gcf().autofmt_xdate()
 	plt.savefig(name, bbox_inches='tight')
 	plt.cla()
+
+	return last_cpu_time
 
 def ioGraph(name, data):
 	times = []

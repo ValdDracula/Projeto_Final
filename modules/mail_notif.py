@@ -2,7 +2,7 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
-from modules.database import retrieve_latest_job
+from modules.database import retrieve_latest_job, retrieve_cpu_values_report, retrieve_first_cpu_value
 import math, os, socket, psutil, time, configparser
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
@@ -25,10 +25,15 @@ def getInfo():
 	remainingDisks = str()
 	dps = psutil.disk_partitions()
 	
-	start_time = time.localtime(retrieve_latest_job()['start_time'])
-	curr_time = round(time.localtime())
+	start_time = retrieve_latest_job()['start_time']
+	curr_time = round(time.time())
 	elapsed_time = curr_time - start_time
-	elapsed_cpu_time = retrieve_latest_job()['cpu_time']
+
+	elapsed_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
+
+	start_time = time.localtime(start_time)
+
+	start_cpu_time = retrieve_first_cpu_value()['cpu_time']
 
 	try:
 		for i in range(0, len(dps)):
@@ -44,11 +49,11 @@ def getInfo():
 	except PermissionError:
 		pass
 
-	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, elapsed_cpu_time
+	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time
 
 def createMemMaxNotif(memoryValue):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, elapsed_cpu_time = getInfo()
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, start_cpu_time = getInfo()
 
 	html_memory_notif = """<style>.center {{
   display: block;
@@ -100,7 +105,7 @@ def createMemMaxNotif(memoryValue):
 
 def createCpuMaxNotif(cpuValue):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, elapsed_cpu_time = getInfo()
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, start_cpu_time = getInfo()
 
 	html_cpu_notif = """<style>.center {{
   display: block;
@@ -150,9 +155,11 @@ def createCpuMaxNotif(cpuValue):
 
 	return message
 
-def createPeriodicReport():
+def createPeriodicReport(last_cpu_time):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time, elapsed_cpu_time = getInfo()
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
+	elapsed_time = last_cpu_time - start_cpu_time
+	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
 
 	html_periodic = """
 	<style>
@@ -253,7 +260,7 @@ def createPeriodicReport():
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), time.strftime("%S", elapsed_time), time.strftime("%S", elapsed_cpu_time), config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 
 
@@ -313,7 +320,9 @@ def createPeriodicReport():
 
 def createErrorNotif(title, message):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elasped_time, elapsed_cpu_time = getInfo()
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
+	elapsed_time = 10
+	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
 
 
 	html_error_notif = """<style>.center {{
@@ -399,7 +408,7 @@ def createErrorNotif(title, message):
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
-	<p>&nbsp;</p>""".format(title, socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), time.strftime("%S", elapsed_time), time.strftime("%S", elapsed_cpu_time), message, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(title, message, socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + title + " Notification"
@@ -462,9 +471,9 @@ def send_memory_notif(password, memoryValue):
 
 	send_mail(password, message)
 
-def send_report(password):
+def send_report(password, last_cpu_time):
 
-	message = createPeriodicReport()
+	message = createPeriodicReport(last_cpu_time)
 	send_mail(password, message)
 
 def send_mail(password, message):
