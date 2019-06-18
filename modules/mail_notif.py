@@ -156,6 +156,12 @@ def createPeriodicReport(config):
 		round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2] * 0.000000000931323, 2)) + "GB"
 	remainingDisks = str()
 	dps = psutil.disk_partitions()
+
+	start_time = time.localtime(retrieve_latest_job()['start_time'])
+	curr_time = round(time.localtime())
+	elapsed_time = curr_time - start_time
+	elapsed_cpu_time = retrieve_latest_job()['cpu_time']
+
 	for i in range(0, len(dps)):
 		dp = dps[i]
 		if str(dp.device).__contains__("\\"):
@@ -211,6 +217,8 @@ def createPeriodicReport(config):
 	</ul>
 	<p><strong>Autopsy case name: </strong>{}</p>
 	<p><strong>Job start time: </strong>{}</p>
+	<p><strong>Elapsed time: </strong>{}</p>
+	<p><strong>CPU elapsed time: </strong>{}</p>
 	<p>&nbsp;</p>
 	<h2>Configurations:</h2>
 	<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
@@ -265,7 +273,7 @@ def createPeriodicReport(config):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", time.localtime(retrieve_latest_job()['start_time'])), config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), time.strftime("%S", elapsed_time), time.strftime("%S", elapsed_cpu_time), config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 
 
@@ -329,6 +337,11 @@ def createErrorNotif(config, title, message):
 	diskUsageAutopsy = str(round(psutil.disk_usage(config["AUTOPSY CASE"]["working_directory"])[2]  * 0.000000000931323, 2)) + "GB"
 	remainingDisks = str()
 	dps = psutil.disk_partitions()
+	start_time = time.localtime(retrieve_latest_job()['start_time'])
+	curr_time = round(time.localtime())
+	elapsed_time = curr_time - start_time
+	elapsed_cpu_time = retrieve_latest_job()['cpu_time']
+
 	for i in range(0, len(dps)):
 		dp = dps[i]
 		if str(dp.device).__contains__("\\"):
@@ -366,6 +379,8 @@ def createErrorNotif(config, title, message):
 	</ul>
 	<p><strong>Autopsy case name: </strong>{}</p>
 	<p><strong>Job start time: </strong>{}</p>
+	<p><strong>Elapsed time: </strong>{}</p>
+	<p><strong>CPU elapsed time: </strong>{}</p>
 	<p>&nbsp;</p>
 	<h2>WARNING:</h2>
 	<p style="padding-left: 60px; text-decoration: underline;">{}</p>
@@ -421,7 +436,7 @@ def createErrorNotif(config, title, message):
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
-	<p>&nbsp;</p>""".format(title, socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", time.localtime(retrieve_latest_job()['start_time'])), message, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(title, socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), time.strftime("%S", elapsed_time), time.strftime("%S", elapsed_cpu_time), message, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + title + " Notification"
