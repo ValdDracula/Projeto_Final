@@ -158,7 +158,12 @@ def createCpuMaxNotif(cpuValue):
 def createPeriodicReport(last_cpu_time):
 
 	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
-	elapsed_time = last_cpu_time - start_cpu_time
+	
+	elapsed_time = 0
+
+	if last_cpu_time != 0:
+		elapsed_time = last_cpu_time - start_cpu_time
+
 	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
 
 	html_periodic = """
@@ -318,10 +323,10 @@ def createPeriodicReport(last_cpu_time):
 
 	return message
 
-def createErrorNotif(title, message):
+def createErrorNotif(title, message, last_cpu_time):
 
 	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, start_cpu_time = getInfo()
-	elapsed_time = 10
+	elapsed_time = last_cpu_time - start_cpu_time
 	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_time // 3600, (elapsed_time % 3600 // 60), (elapsed_time % 3600 % 60))
 
 
@@ -624,9 +629,9 @@ def send_mail(password, message):
 		for mail in receivers:
 			server.sendmail(config["SMTP"]["sender_email"], mail, message.as_string())
 
-def sendErrorMail(password, title, message):
+def sendErrorMail(password, title, message, last_cpu_time = 0):
 
-	mail_message = createErrorNotif(title, message)
+	mail_message = createErrorNotif(title, message, last_cpu_time)
 
 	send_mail(password, mail_message)
 
