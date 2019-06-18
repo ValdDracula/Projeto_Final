@@ -43,7 +43,7 @@ def getInfo():
 					if str(dp.device).replace("\\", "") != disk_autopsy:
 						remainingDisks += str(dp.device) + " - " + str(round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
 					else:
-						disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy
+						disk_autopsy = str(dp.device) + " - " + diskUsageAutopsy + " remaining"
 				elif str(dp.device) != disk_autopsy:
 					remainingDisks += str(dp.device) + " - " + str(round(psutil.disk_usage(dp.device)[2] * 0.000000000931323, 2)) + "GB" + " remaining; "
 	except PermissionError:
@@ -136,7 +136,7 @@ def createCpuMaxNotif(cpuValue):
 <h2>WARNING:</h2>
 <p style="padding-left: 60px;">CPU usage is lower than maximum value established ({}%).</p>
 <p style="padding-left: 60px;">Current CPU value is&nbsp;&asymp; <strong>{}%</strong></p>
-<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, config["CPU USAGE"]["max"], cpuValue)
+<img src="cid:cpu_usage" alt="" style="display: block; margin-left: auto; margin-right: auto; width:50%"/>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName, config["CPU USAGE"]["max"], cpuValue)
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + "CPU notification"
@@ -260,7 +260,7 @@ def createPeriodicReport(last_cpu_time):
 	<p>&nbsp;</p>
 	<h2><strong>Program Execution:</strong></h2>
 	<p><img src="cid:status" alt="" width="1920" height="1080" /></p>
-	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 
 
@@ -408,10 +408,144 @@ def createErrorNotif(title, message):
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
-	<p>&nbsp;</p>""".format(title, message, socket.gethostname(), s.getsockname()[0], disk_autopsy + " - " + diskUsageAutopsy + " remaining", remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+	<p>&nbsp;</p>""".format(title, message, socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName, time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"], config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
 	message = MIMEMultipart("related")
 	message["Subject"] = str(caseName) + ": " + title + " Notification"
+	message["From"] = "noreply@MonAutopsy.pt"
+	msgAlternative = MIMEMultipart('alternative')
+	message.attach(msgAlternative)
+
+	part1 = MIMEText(html_error_notif, "html")
+	msgAlternative.attach(part1)
+
+	fp = open("miscellaneous/cpu_usage_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<cpu_usage_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/cpu_cores_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<cpu_cores_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/cpu_threads_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<cpu_threads_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/cpu_time_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<cpu_time_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/io_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<io_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/memory_usage_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<memory_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	return message
+
+def createFinalReport():
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getInfo()
+
+	html_error_notif = """<style>.center {{
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+		width: 50%;
+		}}</style>
+		<h1 style="text-align: center; font-size: 50px;"><strong>{}</strong></h1>
+		<p>&nbsp;</p>
+		<h2>General information</h2>
+		<p><strong>Machine name: </strong>{}</p>
+		<p><strong>IP Address: </strong>{}</p>
+		<p><strong>Free disk space: </strong></p>
+		<ul>
+		<li>Disk being used by Autopsy:
+		<ul>
+		<li>{}</li>
+		</ul>
+		</li>
+		<li>Remaining Disks:
+		<ul>
+		<li>{}</li>
+		</ul>
+		</li>
+		</ul>
+		<p><strong>Autopsy case name: </strong>{}</p>
+		<p><strong>Job start time: </strong>{}</p>
+		<p>&nbsp;</p>
+		<h2>Configurations:</h2>
+		<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
+			<thead>
+				<tr>
+					<th style="font-weight: 800; border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU/Memory configuration</th>
+					<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum</th>
+				</tr>
+			</thead>
+				<tbody>
+					<tr>
+					<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU usage</td>
+					<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} %</td>
+				</tr>
+				<tr>
+					<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Virtual memory usage</td>
+					<td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">{} MB</td>
+				</tr>
+			</tbody>
+		</table>
+		<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
+			<tr>
+				<th width=70 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Autopsy process</th>
+				<th width=10 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Periodic report</th>
+			</tr>
+			<tr>
+				<td width=140 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">Autopsy processes are monitored every {} seconds</td>
+				<td width=330 style="border: 1px solid #dddddd; text-align: left; padding: 8px;">The periodic report is sent to <u>{}</u> every {} seconds</td>
+			</tr>
+		</table>
+		<p>&nbsp;</p>
+		<h2><strong>Statistics:</strong></h2>
+		<p><strong>CPU:</strong></p>
+		<img src="cid:cpu_usage_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<img src="cid:cpu_cores_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<p style="clear: both;">
+		<img src="cid:cpu_threads_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<img src="cid:cpu_time_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<p style="clear: both;">
+		<p>&nbsp;</p>
+		<p><strong>IO:</strong></p>
+		<!--<img src="cid:io_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>-->
+		<img src="cid:io_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<p style="clear: both;">
+		<p>&nbsp;</p>
+		<p><strong>Memory:</strong></p>
+		<img src="cid:memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<p style="clear: both;">
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>""".format("Final Report", socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName,
+								time.strftime("%d/%m/%Y - %H:%M:%S",
+											  time.localtime(retrieve_latest_job()['start_time'])),
+								config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"],
+								config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
+
+	message = MIMEMultipart("related")
+	message["Subject"] = str(caseName) + ": " + "Job finished - final report"
 	message["From"] = "noreply@MonAutopsy.pt"
 	msgAlternative = MIMEMultipart('alternative')
 	message.attach(msgAlternative)
@@ -474,6 +608,10 @@ def send_memory_notif(password, memoryValue):
 def send_report(password, last_cpu_time):
 
 	message = createPeriodicReport(last_cpu_time)
+	send_mail(password, message)
+
+def send_final_report(password):
+	message = createFinalReport()
 	send_mail(password, message)
 
 def send_mail(password, message):

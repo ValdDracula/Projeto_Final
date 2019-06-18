@@ -5,7 +5,7 @@ from getpass import getpass
 #from arguments import arguments
 from modules.database import *
 from modules.graphics import *
-from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMail
+from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMail, send_final_report
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
 import math
@@ -458,6 +458,8 @@ def main():
                     terminateThreads([checkProcessesThread, reportThread])
 
                     # SEND EMAIL NOTIFYING AUTOPSY JOB HAS ENDED HERE
+                    createGraphicTotal()
+                    send_final_report(smtp_password)
 
                 else:
                     print("[MainThread] AUTOPSY ERROR - the job could not be started, shutting down threads...")
