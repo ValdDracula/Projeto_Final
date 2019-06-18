@@ -1,7 +1,6 @@
 import sqlite3, os, time
 
 dirname = os.path.dirname(os.path.abspath(__file__)).replace("\modules", "")
-databaseDir = dirname + "\\database"
 database = dirname + "\\database\\database.db"
 
 
@@ -76,8 +75,6 @@ def createTables():
 
 def create_connection(db_file):
     try:
-        if os.path.isdir(databaseDir) is not True:
-            os.mkdir(databaseDir)
         conn = sqlite3.connect(db_file)
         return conn
     except sqlite3.Error as e:

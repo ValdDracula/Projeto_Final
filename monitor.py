@@ -45,6 +45,20 @@ if mainProcess is None :
 	print("No process named "+str(PROCNAME))
 	exit(2)
 
+#Root directory
+dirname = os.path.dirname(os.path.abspath(__file__))
+
+#Create database directory
+databaseDir = dirname + "\\database"
+database = dirname + "\\database\\database.db"
+if os.path.isdir(databaseDir) is not True:
+    os.mkdir(databaseDir)
+
+#Create miscellaneous directory
+miscellaneousDir = dirname + "\\miscellaneous"
+if os.path.isdir(miscellaneousDir) is not True:
+    os.mkdir(miscellaneousDir)
+
 
 #Create database tables
 createTables()
@@ -313,7 +327,7 @@ def createGraphicTotal():
     cpuUsageGraph("miscellaneous/cpu_usage_final", cpuData, int(config["CPU USAGE"]["max"]))
     cpuCoresGraph("miscellaneous/cpu_cores_final", cpuData)
     cpuThreadsGraph("miscellaneous/cpu_threads_final", cpuData)
-    last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time", cpuData)
+    last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time_final", cpuData)
     ioGraph("miscellaneous/io_final", ioData)
     memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
     return last_cpu_time

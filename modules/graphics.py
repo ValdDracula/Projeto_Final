@@ -110,7 +110,7 @@ def cpuTimeGraph(name, data):
 	plt.plot(x, cpu_times_rate, label="Autopsy", linewidth=0.7)
 	#plt.locator_params(axis='x', nbins=xNumValues)
 	plt.xlabel("Time")
-	plt.ylabel("CPU time (seconds)")
+	plt.ylabel("CPU time (CPU seconds/second)")
 	#plt.ylim(0, 100)
 	plt.title("CPU time (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
 	plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
