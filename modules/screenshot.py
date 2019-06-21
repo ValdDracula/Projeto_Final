@@ -1,6 +1,4 @@
-import ctypes
-import pyautogui
-import autoit
+import autoit, time, pyautogui, ctypes
 
 #Only Windows
 GetWindowText = ctypes.windll.user32.GetWindowTextW
@@ -35,10 +33,11 @@ def screenshotAutopsy(id):
     else:
         autoit.win_activate(wantedWindow)
         autoit.win_set_state(wantedWindow, flag=autoit.properties.SW_MAXIMIZE)
+        autoit.send("!{h}", 0)
+        autoit.send("{DOWN}")
+        autoit.send("{DOWN}")
+        autoit.send("{ENTER}")
+        time.sleep(0.5)
         pyautogui.screenshot("miscellaneous/autopsy.png")
+        autoit.send("{ESC}")
         autoit.win_set_state(wantedWindow, flag=autoit.properties.SW_MINIMIZE)
-
-
-
-#if __name__ == "__main__":
-#    screenshotAutopsy()
