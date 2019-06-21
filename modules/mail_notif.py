@@ -55,6 +55,8 @@ def getCompleteInfo(last_cpu_time):
 
 	start_time = time.localtime(start_time)
 
+	finish_time = time.localtime(finish_time)
+
 	start_cpu_time = retrieve_first_cpu_value()['cpu_time']
 
 	elapsed_cpu_time = last_cpu_time - start_cpu_time
@@ -169,7 +171,7 @@ def createCpuMaxNotif(cpuValue):
 
 def createPeriodicReport(last_cpu_time):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str = getCompleteInfo(last_cpu_time)
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str, finishTime = getCompleteInfo(last_cpu_time)
 
 	html_periodic = """
 	<style>
@@ -330,7 +332,7 @@ def createPeriodicReport(last_cpu_time):
 
 def createErrorNotifWithData(title, message, last_cpu_time):
 
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str = getCompleteInfo(last_cpu_time)
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str, finishTime = getCompleteInfo(last_cpu_time)
 
 	html_error_notif = """<style>.center {{
 	display: block;
@@ -592,7 +594,7 @@ def createFinalReport(last_cpu_time):
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>""".format("Final Report", socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName,
-								time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, finish_time,
+								time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, time.strftime("%d/%m/%Y - %H:%M:%S", finish_time),
 								config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"],
 								config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
