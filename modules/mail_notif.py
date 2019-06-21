@@ -44,7 +44,10 @@ def getBasicInfo():
 def getCompleteInfo(last_cpu_time):
 	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks = getBasicInfo()
 
-	start_time = retrieve_latest_job()['start_time']
+	job = retrieve_latest_job()
+	start_time = job['start_time']
+	finish_time = job['finish_time']
+	
 	curr_time = round(time.time())
 	elapsed_time = curr_time - start_time
 
@@ -58,7 +61,7 @@ def getCompleteInfo(last_cpu_time):
 
 	elapsed_cpu_time_str = "{:02d}h {:02d}m {:02d}s".format(elapsed_cpu_time // 3600, (elapsed_cpu_time % 3600 // 60), (elapsed_cpu_time % 3600 % 60))
 
-	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str
+	return caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str, finish_time
 
 def createMemMaxNotif(memoryValue):
 
@@ -505,7 +508,7 @@ def createErrorNotifNoData(title, message):
 	return message
 
 def createFinalReport(last_cpu_time):
-	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str = getCompleteInfo(last_cpu_time)
+	caseName, disk_autopsy, diskUsageAutopsy, remainingDisks, start_time, elapsed_time_str, elapsed_cpu_time_str, finish_time = getCompleteInfo(last_cpu_time)
 
 	html_error_notif = """<style>.center {{
 		display: block;
@@ -535,6 +538,7 @@ def createFinalReport(last_cpu_time):
 		<p><strong>Job start time: </strong>{}</p>
 		<p><strong>Elapsed time: </strong>{}</p>
 		<p><strong>CPU elapsed time: </strong>{}</p>
+		<p><strong>Job finish time: </strong>{}</p>
 		<p>&nbsp;</p>
 		<h2>Configurations:</h2>
 		<table style="display: inline-block; font-family: arial, sans-serif; border-collapse: collapse;">
@@ -588,7 +592,7 @@ def createFinalReport(last_cpu_time):
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>""".format("Final Report", socket.gethostname(), s.getsockname()[0], disk_autopsy, remainingDisks, caseName,
-								time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str,
+								time.strftime("%d/%m/%Y - %H:%M:%S", start_time), elapsed_time_str, elapsed_cpu_time_str, finish_time,
 								config["CPU USAGE"]["max"], config["MEMORY"]["max"], config["TIME INTERVAL"]["process"],
 								config["SMTP"]["receiver_email"], config["TIME INTERVAL"]["report"])
 
