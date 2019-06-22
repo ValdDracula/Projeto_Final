@@ -5,7 +5,7 @@ GetWindowText = ctypes.windll.user32.GetWindowTextW
 GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
 IsWindowVisible = ctypes.windll.user32.IsWindowVisible
 wantedWindow = None
-autopsyProcessId = None
+autopsyProcessId = psutil.Process()
 window_process_id = ctypes.c_ulong()
 
 def foreach_window(hwnd, lParam):
@@ -17,14 +17,18 @@ def foreach_window(hwnd, lParam):
         if "autopsy" in str(buff.value).lower():
             ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(window_process_id))
             possibleAutopsyProcess = psutil.Process(window_process_id.value)
-            if possibleAutopsyProcess.pid == autopsyProcessId or "java" in possibleAutopsyProcess.name():
+            if possibleAutopsyProcess.pid == autopsyProcessId: #or "java" in possibleAutopsyProcess.name():
                 wantedWindow = buff.value
+            else:
+                 for children in autopsyProcessId.children(recursive=True):
+                     if children.pid == possibleAutopsyProcess.pid:
+                         wantedWindow = buff.value
     return True
 
 def screenshotAutopsy(id):
     global wantedWindow
     global autopsyProcessId
-    autopsyProcessId = id
+    autopsyProcessId = psutil.Process(id)
     EnumWindows = ctypes.windll.user32.EnumWindows
     EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
 
