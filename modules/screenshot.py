@@ -17,7 +17,6 @@ def foreach_window(hwnd, lParam):
         if "autopsy" in str(buff.value).lower():
             ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(window_process_id))
             possibleAutopsyProcess = psutil.Process(window_process_id.value)
-            print(possibleAutopsyProcess.name())
             if possibleAutopsyProcess.pid == autopsyProcessId or "java" in possibleAutopsyProcess.name():
                 wantedWindow = buff.value
     return True
@@ -42,4 +41,3 @@ def screenshotAutopsy(id):
         time.sleep(0.5)
         pyautogui.screenshot("miscellaneous/autopsy.png")
         autoit.send("{ESC}")
-        autoit.win_set_state(wantedWindow, flag=autoit.properties.SW_MINIMIZE)
