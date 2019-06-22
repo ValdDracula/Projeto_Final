@@ -1,5 +1,4 @@
 psutil
 matplotlib==3.0.3
 argparse
-pyautoit
 pyautogui
