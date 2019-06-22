@@ -1,4 +1,4 @@
-import autoit, time, pyautogui, ctypes
+import psutil, autoit, time, pyautogui, ctypes
 
 #Only Windows
 GetWindowText = ctypes.windll.user32.GetWindowTextW
@@ -16,7 +16,9 @@ def foreach_window(hwnd, lParam):
         GetWindowText(hwnd, buff, length + 1)
         if "autopsy" in str(buff.value).lower():
             ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(window_process_id))
-            if window_process_id.value == autopsyProcessId:
+            possibleAutopsyProcess = psutil.Process(window_process_id.value)
+            print(possibleAutopsyProcess.name())
+            if possibleAutopsyProcess.pid == autopsyProcessId or "java" in possibleAutopsyProcess.name():
                 wantedWindow = buff.value
     return True
 
