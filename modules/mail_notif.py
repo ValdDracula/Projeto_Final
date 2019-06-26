@@ -224,7 +224,7 @@ def createPeriodicReport(last_cpu_time):
 		<thead>
 			<tr>
 				<th style="font-weight: 800; border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU/Memory configuration</th>
-				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum</th>
+				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum threshold</th>
 			</tr>
 		</thead>
 			<tbody>
@@ -255,7 +255,6 @@ def createPeriodicReport(last_cpu_time):
 	<img src="cid:cpu_cores" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<img src="cid:cpu_threads" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
-	<img src="cid:cpu_time" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
 	<p><strong>IO:</strong></p>
@@ -303,11 +302,11 @@ def createPeriodicReport(last_cpu_time):
 	message.attach(msgImage)
 	fp.close()
 
-	fp = open("miscellaneous/cpu_time.png", "rb")
-	msgImage = MIMEImage(fp.read())
-	msgImage.add_header('Content-ID', '<cpu_time>')
-	message.attach(msgImage)
-	fp.close()
+	# fp = open("miscellaneous/cpu_time.png", "rb")
+	# msgImage = MIMEImage(fp.read())
+	# msgImage.add_header('Content-ID', '<cpu_time>')
+	# message.attach(msgImage)
+	# fp.close()
 
 	fp = open("miscellaneous/io.png", "rb")
 	msgImage = MIMEImage(fp.read())
@@ -371,7 +370,7 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 		<thead>
 			<tr>
 				<th style="font-weight: 800; border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU/Memory configuration</th>
-				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum</th>
+				<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum threshold</th>
 			</tr>
 		</thead>
 			<tbody>
@@ -402,7 +401,6 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	<img src="cid:cpu_cores_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<img src="cid:cpu_threads_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
-	<img src="cid:cpu_time_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
 	<p><strong>IO:</strong></p>
@@ -446,11 +444,11 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	message.attach(msgImage)
 	fp.close()
 
-	fp = open("miscellaneous/cpu_time_final.png", "rb")
-	msgImage = MIMEImage(fp.read())
-	msgImage.add_header('Content-ID', '<cpu_time_final>')
-	message.attach(msgImage)
-	fp.close()
+	# fp = open("miscellaneous/cpu_time_final.png", "rb")
+	# msgImage = MIMEImage(fp.read())
+	# msgImage.add_header('Content-ID', '<cpu_time_final>')
+	# message.attach(msgImage)
+	# fp.close()
 
 	fp = open("miscellaneous/io_final.png", "rb")
 	msgImage = MIMEImage(fp.read())
@@ -547,7 +545,7 @@ def createFinalReport(last_cpu_time):
 			<thead>
 				<tr>
 					<th style="font-weight: 800; border: 1px solid #dddddd; text-align: left; padding: 8px;">CPU/Memory configuration</th>
-					<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum</th>
+					<th style="font-weight: bolder; border: 1px solid #dddddd; text-align: left; padding: 8px;">Maximum threshold</th>
 				</tr>
 			</thead>
 				<tbody>
@@ -578,7 +576,6 @@ def createFinalReport(last_cpu_time):
 		<img src="cid:cpu_cores_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 		<p style="clear: both;">
 		<img src="cid:cpu_threads_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
-		<img src="cid:cpu_time_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 		<p style="clear: both;">
 		<p>&nbsp;</p>
 		<p><strong>IO:</strong></p>
@@ -625,11 +622,11 @@ def createFinalReport(last_cpu_time):
 	message.attach(msgImage)
 	fp.close()
 
-	fp = open("miscellaneous/cpu_time_final.png", "rb")
-	msgImage = MIMEImage(fp.read())
-	msgImage.add_header('Content-ID', '<cpu_time_final>')
-	message.attach(msgImage)
-	fp.close()
+	# fp = open("miscellaneous/cpu_time_final.png", "rb")
+	# msgImage = MIMEImage(fp.read())
+	# msgImage.add_header('Content-ID', '<cpu_time_final>')
+	# message.attach(msgImage)
+	# fp.close()
 
 	fp = open("miscellaneous/io_final.png", "rb")
 	msgImage = MIMEImage(fp.read())
