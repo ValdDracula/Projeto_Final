@@ -181,11 +181,14 @@ def memoryUsageGraph(name, data, max_solr, max):
     solr_mem = []
     date = None
     memory_usage_median = 0
+    system_mem_usages = []
+
     for row in data:
         date = datetime.fromtimestamp(row[4])
         times.append(date)
         mem_usages.append(int(row[0]) / 1000000)
         solr_mem.append(row[5])
+        system_mem_usages.append(int(row["system_memory_usage"]) / 1000000)
     for i in range(0, len(mem_usages)):
         memory_usage_median += mem_usages[i]
 
@@ -196,6 +199,7 @@ def memoryUsageGraph(name, data, max_solr, max):
     ax.xaxis.set_major_formatter(xfmt)
     plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
     plt.plot(times, solr_mem, label="Solr", linewidth=0.7)
+    plt.plot(times, system_mem_usages, label="System", linewidth=0.7)
     #plt.locator_params(axis='x', nbins=xNumValues)
     plt.axhline(max, label="Maximum threshold ({}MB)".format(max), linestyle='--', color='r', linewidth=1)
     plt.axhline(memory_usage_median, label="Median Memory Usage ({}MB)".format(memory_usage_median), linestyle='--', color='b', linewidth=1)

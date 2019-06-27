@@ -29,6 +29,7 @@ def createTables():
 								memory_usage INTEGER NOT NULL,
 								page_faults INTEGER NOT NULL,
 								solr_memory REAL NOT NULL,
+                                system_memory_usage INTEGER NOT NULL,
 								FOREIGN KEY(job_id) REFERENCES jobs(id),
 								PRIMARY KEY(id, job_id)
 							)'''
@@ -160,7 +161,7 @@ def add_updates_record(cpu_record, IO_record, memory_record, update_timeTuple, s
                 nextIdTuple = (highestIdRow[0] + 1,)
 
             sqlCommand = '''INSERT INTO updates(id, job_id, update_time, cpu_usage_percentage, num_cores, threads, cpu_time, 
-							read_count, write_count, read_bytes, write_bytes, memory_usage, page_faults, solr_memory) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?, ?)'''
+							read_count, write_count, read_bytes, write_bytes, memory_usage, page_faults, system_memory_usage, solr_memory) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
 
             tupleToFill = nextIdTuple + job_idTuple + update_timeTuple + cpu_record + IO_record + memory_record + solr_memory
 
@@ -447,10 +448,11 @@ def retrieve_IO_values_final():
 # All memory updates
 def retrieve_memory_values():
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, system_memory_usage
 					FROM updates''')
         rows = c.fetchall()
         c.close()
@@ -464,6 +466,7 @@ def retrieve_memory_values():
 def retrieve_memory_values_report(startId):
     idTuple = (startId,)
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
@@ -473,7 +476,7 @@ def retrieve_memory_values_report(startId):
 
         tuppleToFill = idTuple + job_idTuple
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory, system_memory_usage
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
         rows = c.fetchall()
@@ -487,6 +490,7 @@ def retrieve_memory_values_report(startId):
 # Memory values on notifications
 def retrieve_memory_values_notif():
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
@@ -494,7 +498,7 @@ def retrieve_memory_values_notif():
 
         jobId = (c.fetchone()[0],)
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory, system_memory_usage
                     FROM updates
                     WHERE job_id = ?
                     ORDER BY id
@@ -512,13 +516,14 @@ def retrieve_memory_values_notif():
 #Memory values on final report and errors
 def retrieve_memory_values_final():
     conn = create_connection(database)
+    conn.row_factory = sqlite3.Row
 
     try:
         c = conn.cursor()
         c.execute('''SELECT MAX(id) FROM jobs''')
         currentJobId = c.fetchone()[0]
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory, system_memory_usage
         					FROM updates 
         					WHERE job_id = ?''', (currentJobId,))
         rows = c.fetchall()
