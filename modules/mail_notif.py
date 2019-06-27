@@ -266,6 +266,10 @@ def createPeriodicReport(last_cpu_time):
 	<img src="cid:memory" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
+	<p><strong>Free Disk Space:</strong></p>
+	<img src="cid:free_disk_space" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+	<p style="clear: both;">
+	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
@@ -317,6 +321,12 @@ def createPeriodicReport(last_cpu_time):
 	fp = open("miscellaneous/memory_usage.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<memory>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/free_disk_space.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<free_disk_space>')
 	message.attach(msgImage)
 	fp.close()
 
@@ -412,6 +422,10 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	<img src="cid:memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
+	<p><strong>Free Disk Space:</strong></p>
+	<img src="cid:free_disk_space" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+	<p style="clear: both;">
+	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
 	<p>&nbsp;</p>
@@ -453,6 +467,12 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	fp = open("miscellaneous/io_final.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<io_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/free_disk_space.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<free_disk_space>')
 	message.attach(msgImage)
 	fp.close()
 
@@ -587,6 +607,10 @@ def createFinalReport(last_cpu_time):
 		<img src="cid:memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 		<p style="clear: both;">
 		<p>&nbsp;</p>
+		<p><strong>Free Disk Space:</strong></p>
+		<img src="cid:free_disk_space_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<p style="clear: both;">
+		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
 		<p>&nbsp;</p>
@@ -631,6 +655,12 @@ def createFinalReport(last_cpu_time):
 	fp = open("miscellaneous/io_final.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<io_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/free_disk_space_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<free_disk_space_final>')
 	message.attach(msgImage)
 	fp.close()
 
