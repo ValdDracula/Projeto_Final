@@ -98,6 +98,8 @@ def checkProcesses():
     IOWriteBytesClosedProcesses = 0
     pageFaultsClosedProcesses = 0
     lastProcessesInfo = dict()
+    processes = dict()
+    processes[mainProcess.pid] = mainProcess
 
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         start_timestamp = time.time()
@@ -136,15 +138,23 @@ def checkProcesses():
 
         #Try catch here in case the mainProcess dies
         try:
-            processes = mainProcess.children(recursive=True) #Get all processes descendants
-            processes.append(mainProcess)
+            processesList = mainProcess.children(recursive=True) #Get all processes descendants
+
+            for proc in processes.values():
+                if not proc.is_running():
+                    processes.pop(proc.pid)
+
+            for process in processesList:
+                if process.pid not in processes:
+                    processes[process.pid] = process
+
         except psutil.NoSuchProcess:
             if not mainProcess.is_running():
                 print("All processes are dead!!!")
                 errorOccurred = True
                 continue
 
-        for proc in processes:
+        for proc in processes.values():
             #Try catch in case some process besides main process dies, this way the execution won't stop due to a secondary process
             try:
                 cpuUsage += proc.cpu_percent() / psutil.cpu_count()
