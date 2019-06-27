@@ -1,4 +1,4 @@
-import matplotlib, requests
+import matplotlib
 matplotlib.use('Agg') # Fixes a runtime error (related to tkinter and it's execution not being in the main thread)
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -172,10 +172,12 @@ def ioGraph(name, data):
     plt.savefig(name, bbox_inches='tight')
     plt.cla()
 
+def roundup(x):
+	return int(math.ceil(x / 100.0)) * 100
 
-def memoryUsageGraph(name, data, max_solr, max):
+def memoryUsageGraph(name, data, max):
     #Needs pagefaults
-    totalMemory = int(virtual_memory()[0]) / 1000000
+    totalMemory = roundup(int(virtual_memory()[0]) * 0.000000953674)
     times = []
     mem_usages = []
     solr_mem = []
@@ -186,9 +188,9 @@ def memoryUsageGraph(name, data, max_solr, max):
     for row in data:
         date = datetime.fromtimestamp(row[4])
         times.append(date)
-        mem_usages.append(int(row[0]) / 1000000)
-        solr_mem.append(row[5])
-        system_mem_usages.append(int(row["system_memory_usage"]) / 1000000)
+        mem_usages.append(round(int(row[0]) * 0.000000953674, 2))
+        #solr_mem.append(round(row[5], 2))
+        system_mem_usages.append(round(int(row["system_memory_usage"]) * 0.000000953674, 2))
     for i in range(0, len(mem_usages)):
         memory_usage_median += mem_usages[i]
 
@@ -198,16 +200,41 @@ def memoryUsageGraph(name, data, max_solr, max):
     xfmt = mdates.DateFormatter('%H:%M:%S')
     ax.xaxis.set_major_formatter(xfmt)
     plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
-    plt.plot(times, solr_mem, label="Solr", linewidth=0.7)
+    #plt.plot(times, solr_mem, label="Solr", linewidth=0.7)
     plt.plot(times, system_mem_usages, label="System", linewidth=0.7)
     #plt.locator_params(axis='x', nbins=xNumValues)
     plt.axhline(max, label="Maximum threshold ({}MB)".format(max), linestyle='--', color='r', linewidth=1)
-    plt.axhline(memory_usage_median, label="Median Memory Usage ({}MB)".format(memory_usage_median), linestyle='--', color='b', linewidth=1)
-    plt.axhline(max_solr, label="Solr Maximum memory({}MB)".format(max_solr), linestyle='--', color='y', linewidth=1)
+    #plt.axhline(memory_usage_median, label="Median Memory Usage ({}MB)".format(memory_usage_median), linestyle='--', color='b', linewidth=1)
+    #plt.axhline(max_solr, label="Solr Maximum memory({}MB)".format(max_solr), linestyle='--', color='y', linewidth=1)
     plt.xlabel("Time")
     plt.ylabel("Memory usage (MB)")
     plt.ylim(0, totalMemory)
+    #plt.yticks(numpy.arange(0, totalMemory, step=1500))
     plt.title("Memory usage (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
+    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    plt.gcf().autofmt_xdate()
+    plt.savefig(name, bbox_inches='tight')
+    plt.cla()
+
+def solrMemory(name, data, max_solr):
+    times = []
+    solr_mem = []
+    date = None
+
+    for row in data:
+        date = datetime.fromtimestamp(row[3])
+        times.append(date)
+        solr_mem.append(round(row[0], 2))
+
+    ax = plt.gca()
+    xfmt = mdates.DateFormatter('%H:%M:%S')
+    ax.xaxis.set_major_formatter(xfmt)
+    plt.plot(times, solr_mem, label="Solr", linewidth=0.7)
+    plt.axhline(max_solr, label="Maximum solr memory ({}MB)".format(max_solr), linestyle='--', color='r', linewidth=1)
+    plt.xlabel("Time")
+    plt.ylabel("Memory usage (MB)")
+    plt.ylim(0, roundup(max_solr))
+    plt.title("Solr Memory (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     plt.gcf().autofmt_xdate()
     plt.savefig(name, bbox_inches='tight')

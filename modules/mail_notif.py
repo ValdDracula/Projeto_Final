@@ -264,6 +264,7 @@ def createPeriodicReport(last_cpu_time):
 	<p>&nbsp;</p>
 	<p><strong>Memory:</strong></p>
 	<img src="cid:memory" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+	<img src="cid:solr_memory" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
 	<p><strong>Free Disk Space:</strong></p>
@@ -321,6 +322,12 @@ def createPeriodicReport(last_cpu_time):
 	fp = open("miscellaneous/memory_usage.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<memory>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/solr_memory.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<solr_memory>')
 	message.attach(msgImage)
 	fp.close()
 
@@ -420,6 +427,7 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	<p>&nbsp;</p>
 	<p><strong>Memory:</strong></p>
 	<img src="cid:memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+	<img src="cid:solr_memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
 	<p><strong>Free Disk Space:</strong></p>
@@ -479,6 +487,12 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	fp = open("miscellaneous/memory_usage_final.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<memory_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/solr_memory_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<solr_memory_final>')
 	message.attach(msgImage)
 	fp.close()
 
@@ -605,6 +619,7 @@ def createFinalReport(last_cpu_time):
 		<p>&nbsp;</p>
 		<p><strong>Memory:</strong></p>
 		<img src="cid:memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
+		<img src="cid:solr_memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 		<p style="clear: both;">
 		<p>&nbsp;</p>
 		<p><strong>Free Disk Space:</strong></p>
@@ -667,6 +682,12 @@ def createFinalReport(last_cpu_time):
 	fp = open("miscellaneous/memory_usage_final.png", "rb")
 	msgImage = MIMEImage(fp.read())
 	msgImage.add_header('Content-ID', '<memory_final>')
+	message.attach(msgImage)
+	fp.close()
+
+	fp = open("miscellaneous/solr_memory_final.png", "rb")
+	msgImage = MIMEImage(fp.read())
+	msgImage.add_header('Content-ID', '<solr_memory_final>')
 	message.attach(msgImage)
 	fp.close()
 

@@ -1,6 +1,6 @@
 #PSUtil doc: https://psutil.readthedocs.io/en/latest/
 #threading doc: https://docs.python.org/2/library/threading.html
-import psutil, threading, configparser
+import psutil, threading, configparser, requests
 from getpass import getpass
 #from arguments import arguments
 from modules.database import *
@@ -132,7 +132,7 @@ def solrMaximumMemory():
 
     maximumMemory = str.rsplit(maximumMemory, " ")[0]
 
-    return maximumMemory
+    return int(float(maximumMemory))
 
 def getSolrPort():
     path = mainProcess.exe()
@@ -286,7 +286,9 @@ def checkProcesses():
 
         systemMemoryUsage = psutil.virtual_memory().used
 
-        memoryRecord = (totalMemoryUsage, totalPageFaults, systemMemoryUsage)
+        solrMemory = solrCurrentMemory()
+
+        memoryRecord = (totalMemoryUsage, totalPageFaults, systemMemoryUsage, solrMemory)
 
         #Get free disk space
         for key in disks:
@@ -300,11 +302,9 @@ def checkProcesses():
             except FileNotFoundError:
                 disks[key].append("-1" + ", " + str(datetime.now().timestamp()))
 
-        solrMemory = solrCurrentMemory()
-
         #Add all the records to the database
 
-        add_updates_record(cpuRecord, IORecord, memoryRecord, update_timeTuple, solrMemory)
+        add_updates_record(cpuRecord, IORecord, memoryRecord, update_timeTuple)
 
         #Send notifications if...
 
@@ -414,13 +414,15 @@ def createGraphic(id):
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
+    solrData = retrieve_solr_memory_report(id)
     disksFreeSpace = freeDiskSpaceValue()
     cpuUsageGraph("miscellaneous/cpu_usage", cpuData, int(config["CPU USAGE"]["max"]))
     cpuCoresGraph("miscellaneous/cpu_cores", cpuData)
     cpuThreadsGraph("miscellaneous/cpu_threads", cpuData)
     last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time", cpuData)
     ioGraph("miscellaneous/io", ioData)
-    memoryUsageGraph("miscellaneous/memory_usage", memoryData, solrMaximumMemory(), config["MEMORY"]["max"])
+    memoryUsageGraph("miscellaneous/memory_usage", memoryData, int(config["MEMORY"]["max"]))
+    solrMemory("miscellaneous/solr_memory", solrData, solrMaximumMemory())
     freeDiskSpaceGraph("miscellaneous/free_disk_space", disksFreeSpace)
     row = cpuData[len(cpuData) - 1]
     id = int(row[4])
@@ -430,12 +432,14 @@ def createGraphicTotal():
     cpuData = retrieve_cpu_values_final()
     memoryData = retrieve_memory_values_final()
     ioData = retrieve_IO_values_final()
+    solrData = retrieve_solr_memory_final()
     cpuUsageGraph("miscellaneous/cpu_usage_final", cpuData, int(config["CPU USAGE"]["max"]))
     cpuCoresGraph("miscellaneous/cpu_cores_final", cpuData)
     cpuThreadsGraph("miscellaneous/cpu_threads_final", cpuData)
     last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time_final", cpuData)
     ioGraph("miscellaneous/io_final", ioData)
-    memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, solrMaximumMemory(), int(config["MEMORY"]["max"]))
+    memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
+    solrMemory("miscellaneous/solr_memory_final", solrData, solrMaximumMemory())
     freeDiskSpaceGraph("miscellaneous/free_disk_space_final", disks)
     return last_cpu_time
 
