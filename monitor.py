@@ -252,7 +252,9 @@ def checkProcesses():
             totalMemoryUsage += memoryInfo.uss
             totalPageFaults += memoryInfo.num_page_faults
 
-        memoryRecord = (totalMemoryUsage, totalPageFaults)
+        systemMemoryUsage = psutil.virtual_memory().used
+
+        memoryRecord = (totalMemoryUsage, totalPageFaults, systemMemoryUsage)
 
         #Get free disk space
         for key in disks:
