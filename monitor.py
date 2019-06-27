@@ -79,10 +79,39 @@ if ", " in config["SMTP"]["receiver_email"]:
 else:
     receivers = [config["SMTP"]["receiver_email"]]
 
-#Number of values for the X axis
-xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"])) + 1
-if xNumValues > 11:
-    xNumValues = 11
+# Number of values for the X axis
+# xNumValues = math.floor(int(config["TIME INTERVAL"]["report"]) / int(config["TIME INTERVAL"]["process"])) + 1
+# if xNumValues > 11:
+#     xNumValues = 11
+
+def freeDiskSpaceDic():
+    disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
+
+    dps = psutil.disk_partitions()
+    disksDic = {}
+
+    try:
+        for i in range(0, len(dps)):
+            dp = dps[i]
+            if dp.fstype != '' and 'cdrom' not in dp.opts:
+                if str(dp.device).__contains__("\\"):
+                    if str(dp.device).replace("\\", "") != disk_autopsy:
+                        disksDic[dp.device] = []
+                    else:
+                        disksDic[str(dp.device) + " (disk used by Autopsy)"] = []
+                else:
+                    if str(dp.device) == disk_autopsy:
+                        disksDic[str(dp.device) + " (disk used by Autopsy)"] = []
+                    else:
+                        disksDic[dp.device] = []
+    except PermissionError:
+        pass
+    return disksDic
+
+
+#Free Disk Space
+disks = freeDiskSpaceDic()
+disksIter = 0
 
 
 #Process(es) monitorization
@@ -215,6 +244,18 @@ def checkProcesses():
 
         memoryRecord = (totalMemoryUsage, totalPageFaults)
 
+        #Get free disk space
+        for key in disks:
+            try:
+                if key.__contains__("(disk used by Autopsy)"):
+                    freeDiskSpace = round(
+                        psutil.disk_usage(key.replace("(disk used by Autopsy)", ""))[2] * 0.000000000931323, 2)
+                else:
+                    freeDiskSpace = round(psutil.disk_usage(key)[2] * 0.000000000931323, 2)
+                disks[key].append(str(freeDiskSpace) + ", " + str(datetime.now().timestamp()))
+            except FileNotFoundError:
+                disks[key].append("-1" + ", " + str(datetime.now().timestamp()))
+
         #Add all the records to the database
 
         add_updates_record(cpuRecord, IORecord, memoryRecord, update_timeTuple)
@@ -304,18 +345,37 @@ def periodicReport():
     for thread in notif_thread_list:
         thread.join()
 
+
+def freeDiskSpaceValue():
+    global disksIter
+    diskFreeSpace = {}
+    value = -1
+    for i in disks.values():
+        if value == -1:
+            value = len(i)
+        else:
+            if value == len(i):
+                continue
+            else:
+                print("Error getting free disk space")
+    for key in disks:
+        diskFreeSpace[key] = disks[key][disksIter:value]
+    disksIter = value
+    return diskFreeSpace
+
 #CPU, IO and memory charts creation
 def createGraphic(id):
     cpuData = retrieve_cpu_values_report(id)
     memoryData = retrieve_memory_values_report(id)
     ioData = retrieve_IO_values_report(id)
+    disksFreeSpace = freeDiskSpaceValue()
     cpuUsageGraph("miscellaneous/cpu_usage", cpuData, int(config["CPU USAGE"]["max"]))
     cpuCoresGraph("miscellaneous/cpu_cores", cpuData)
     cpuThreadsGraph("miscellaneous/cpu_threads", cpuData)
     last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time", cpuData)
     ioGraph("miscellaneous/io", ioData)
     memoryUsageGraph("miscellaneous/memory_usage", memoryData,int(config["MEMORY"]["max"]))
-    #Verificar se cpuData[len(cpuData) - 1] corresponde ao ultimo id
+    freeDiskSpaceGraph("miscellaneous/free_disk_space", disksFreeSpace)
     row = cpuData[len(cpuData) - 1]
     id = int(row[4])
     return id, last_cpu_time
@@ -330,6 +390,7 @@ def createGraphicTotal():
     last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time_final", cpuData)
     ioGraph("miscellaneous/io_final", ioData)
     memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
+    freeDiskSpaceGraph("miscellaneous/free_disk_space_final", disks)
     return last_cpu_time
 
 
