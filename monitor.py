@@ -8,6 +8,7 @@ from modules.graphics import *
 from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMailWithData, sendErrorMailNoData, send_final_report
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
+from xml.dom import minidom
 import math
 
             #Not necessary for the time being:
@@ -113,6 +114,37 @@ def freeDiskSpaceDic():
 disks = freeDiskSpaceDic()
 disksIter = 0
 
+
+#Solr Memory
+def solrCurrentMemory():
+    response = requests.get("http://localhost:" + str(getSolrPort()) + "/solr/admin/info/system?wt=json")
+
+    currentMemory = response.json()["jvm"]["memory"]["used"]
+
+    currentMemory = str.rsplit(currentMemory, " ")[0]
+
+    return currentMemory
+
+def solrMaximumMemory():
+    response = requests.get("http://localhost:" + str(getSolrPort()) + "/solr/admin/info/system?wt=json")
+
+    maximumMemory = response.json()["jvm"]["memory"]["max"]
+
+    maximumMemory = str.rsplit(maximumMemory, " ")[0]
+
+    return maximumMemory
+
+def getSolrPort():
+    path = mainProcess.exe()
+    rootSolr = path.rsplit("bin", 1)[0] + "autopsy\solr\etc\jetty.xml"
+
+    doc = minidom.parse(rootSolr)
+
+    sets = doc.getElementsByTagName("SystemProperty")
+
+    for set in sets:
+        if set.attributes['name'].value == "jetty.port":
+            return set.attributes['default'].value
 
 #Process(es) monitorization
 def checkProcesses():
@@ -266,9 +298,11 @@ def checkProcesses():
             except FileNotFoundError:
                 disks[key].append("-1" + ", " + str(datetime.now().timestamp()))
 
+        solrMemory = solrCurrentMemory()
+
         #Add all the records to the database
 
-        add_updates_record(cpuRecord, IORecord, memoryRecord, update_timeTuple)
+        add_updates_record(cpuRecord, IORecord, memoryRecord, update_timeTuple, solrMemory)
 
         #Send notifications if...
 
@@ -384,7 +418,7 @@ def createGraphic(id):
     cpuThreadsGraph("miscellaneous/cpu_threads", cpuData)
     last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time", cpuData)
     ioGraph("miscellaneous/io", ioData)
-    memoryUsageGraph("miscellaneous/memory_usage", memoryData,int(config["MEMORY"]["max"]))
+    memoryUsageGraph("miscellaneous/memory_usage", memoryData, solrMaximumMemory(), config["MEMORY"]["max"])
     freeDiskSpaceGraph("miscellaneous/free_disk_space", disksFreeSpace)
     row = cpuData[len(cpuData) - 1]
     id = int(row[4])
@@ -399,7 +433,7 @@ def createGraphicTotal():
     cpuThreadsGraph("miscellaneous/cpu_threads_final", cpuData)
     last_cpu_time = cpuTimeGraph("miscellaneous/cpu_time_final", cpuData)
     ioGraph("miscellaneous/io_final", ioData)
-    memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, int(config["MEMORY"]["max"]))
+    memoryUsageGraph("miscellaneous/memory_usage_final", memoryData, solrMaximumMemory(), int(config["MEMORY"]["max"]))
     freeDiskSpaceGraph("miscellaneous/free_disk_space_final", disks)
     return last_cpu_time
 

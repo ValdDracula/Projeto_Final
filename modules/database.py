@@ -28,6 +28,7 @@ def createTables():
 								write_bytes INTEGER NOT NULL,
 								memory_usage INTEGER NOT NULL,
 								page_faults INTEGER NOT NULL,
+								solr_memory REAL NOT NULL,
 								FOREIGN KEY(job_id) REFERENCES jobs(id),
 								PRIMARY KEY(id, job_id)
 							)'''
@@ -129,7 +130,7 @@ def update_jobs_record():
         conn.close()
 
 
-def add_updates_record(cpu_record, IO_record, memory_record, update_timeTuple):
+def add_updates_record(cpu_record, IO_record, memory_record, update_timeTuple, solr_memory):
     conn = create_connection(database)
     c = conn.cursor()
 
@@ -159,9 +160,9 @@ def add_updates_record(cpu_record, IO_record, memory_record, update_timeTuple):
                 nextIdTuple = (highestIdRow[0] + 1,)
 
             sqlCommand = '''INSERT INTO updates(id, job_id, update_time, cpu_usage_percentage, num_cores, threads, cpu_time, 
-							read_count, write_count, read_bytes, write_bytes, memory_usage, page_faults) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)'''
+							read_count, write_count, read_bytes, write_bytes, memory_usage, page_faults, solr_memory) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?, ?)'''
 
-            tupleToFill = nextIdTuple + job_idTuple + update_timeTuple + cpu_record + IO_record + memory_record
+            tupleToFill = nextIdTuple + job_idTuple + update_timeTuple + cpu_record + IO_record + memory_record + solr_memory
 
             c.execute(sqlCommand, tupleToFill)
 
@@ -472,7 +473,7 @@ def retrieve_memory_values_report(startId):
 
         tuppleToFill = idTuple + job_idTuple
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
         rows = c.fetchall()
@@ -493,7 +494,7 @@ def retrieve_memory_values_notif():
 
         jobId = (c.fetchone()[0],)
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory
                     FROM updates
                     WHERE job_id = ?
                     ORDER BY id
@@ -517,7 +518,7 @@ def retrieve_memory_values_final():
         c.execute('''SELECT MAX(id) FROM jobs''')
         currentJobId = c.fetchone()[0]
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory
         					FROM updates 
         					WHERE job_id = ?''', (currentJobId,))
         rows = c.fetchall()
