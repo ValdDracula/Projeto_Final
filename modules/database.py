@@ -476,7 +476,7 @@ def retrieve_memory_values_report(startId):
 
         tuppleToFill = idTuple + job_idTuple
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory, system_memory_usage
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, system_memory_usage
 					FROM updates 
 					WHERE id >= ? AND job_id = ?''', tuppleToFill)
         rows = c.fetchall()
@@ -498,7 +498,7 @@ def retrieve_memory_values_notif():
 
         jobId = (c.fetchone()[0],)
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory, system_memory_usage
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, system_memory_usage
                     FROM updates
                     WHERE job_id = ?
                     ORDER BY id
@@ -523,7 +523,7 @@ def retrieve_memory_values_final():
         c.execute('''SELECT MAX(id) FROM jobs''')
         currentJobId = c.fetchone()[0]
 
-        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, solr_memory, system_memory_usage
+        c.execute('''SELECT memory_usage, page_faults, id, job_id, update_time, system_memory_usage
         					FROM updates 
         					WHERE job_id = ?''', (currentJobId,))
         rows = c.fetchall()
@@ -578,3 +578,47 @@ def retrieve_solr_memory_final():
         return rows
     except sqlite3.Error as e:
         print(e)
+
+# def retrieve_time_report(startId):
+#     idTuple = (startId,)
+#     conn = create_connection(database)
+#     conn.row_factory = sqlite3.Row
+#
+#     try:
+#         c = conn.cursor()
+#         c.execute('''SELECT MAX(id) FROM jobs''')
+#
+#         job_idTuple = (c.fetchone()[0],)
+#
+#         tuppleToFill = idTuple + job_idTuple
+#
+#         c.execute('''SELECT update_time
+#         					FROM updates
+#         					WHERE id >= ? AND job_id = ?''', tuppleToFill)
+#         rows = c.fetchall()
+#         c.close()
+#         conn.close()
+#
+#         return rows
+#     except sqlite3.Error as e:
+#         print(e)
+#
+# def retrieve_time_final():
+#     conn = create_connection(database)
+#     conn.row_factory = sqlite3.Row
+#
+#     try:
+#         c = conn.cursor()
+#         c.execute('''SELECT MAX(id) FROM jobs''')
+#         currentJobId = c.fetchone()[0]
+#
+#         c.execute('''SELECT update_time
+#                 					FROM updates
+#                 					WHERE job_id = ?''', (currentJobId,))
+#         rows = c.fetchall()
+#         c.close()
+#         conn.close()
+#
+#         return rows
+#     except sqlite3.Error as e:
+#         print(e)

@@ -7,6 +7,7 @@ from matplotlib import style
 from psutil import virtual_memory
 import math
 from collections import deque
+import numpy as np
 style.use('fivethirtyeight')
 
 def cpuUsageGraph(name, data, max):
@@ -180,7 +181,6 @@ def memoryUsageGraph(name, data, max):
     totalMemory = roundup(int(virtual_memory()[0]) * 0.000000953674)
     times = []
     mem_usages = []
-    solr_mem = []
     date = None
     memory_usage_median = 0
     system_mem_usages = []
@@ -189,27 +189,22 @@ def memoryUsageGraph(name, data, max):
         date = datetime.fromtimestamp(row[4])
         times.append(date)
         mem_usages.append(round(int(row[0]) * 0.000000953674, 2))
-        #solr_mem.append(round(row[5], 2))
         system_mem_usages.append(round(int(row["system_memory_usage"]) * 0.000000953674, 2))
-    for i in range(0, len(mem_usages)):
-        memory_usage_median += mem_usages[i]
-
-    memory_usage_median = round(memory_usage_median / len(mem_usages), 2)
+    # for i in range(0, len(mem_usages)):
+    #     memory_usage_median += mem_usages[i]
+    #
+    # memory_usage_median = round(memory_usage_median / len(mem_usages), 2)
     #plt.xticks(times, rotation=25)
     ax = plt.gca()
     xfmt = mdates.DateFormatter('%H:%M:%S')
     ax.xaxis.set_major_formatter(xfmt)
     plt.plot(times, mem_usages, label="Autopsy", linewidth=0.7)
-    #plt.plot(times, solr_mem, label="Solr", linewidth=0.7)
     plt.plot(times, system_mem_usages, label="System", linewidth=0.7)
     #plt.locator_params(axis='x', nbins=xNumValues)
     plt.axhline(max, label="Maximum threshold ({}MB)".format(max), linestyle='--', color='r', linewidth=1)
-    #plt.axhline(memory_usage_median, label="Median Memory Usage ({}MB)".format(memory_usage_median), linestyle='--', color='b', linewidth=1)
-    #plt.axhline(max_solr, label="Solr Maximum memory({}MB)".format(max_solr), linestyle='--', color='y', linewidth=1)
     plt.xlabel("Time")
     plt.ylabel("Memory usage (MB)")
     plt.ylim(0, totalMemory)
-    #plt.yticks(numpy.arange(0, totalMemory, step=1500))
     plt.title("Memory usage (" + str(datetime.strftime(date, '%d-%m-%Y')) + ")")
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     plt.gcf().autofmt_xdate()
@@ -241,22 +236,64 @@ def solrMemory(name, data, max_solr):
     plt.cla()
 
 def freeDiskSpaceGraph(name, data):
+    numCharts = len(data.keys())
+    fig = plt.figure(figsize=(6,numCharts*5))
+    axs = fig.subplots(nrows=numCharts, sharex=True)
+    fig.add_subplot(111, frameon=False)
+    plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+    plt.grid(False)
+    plt.xlabel("Time", x=1.0)
+    plt.ylabel("Disk space (%)")
+    colors = ['r', 'g', 'b', 'y', 'c', 'm', 'k']
+    itr = np.nditer([colors])
+    i = 0
     for key in data:
         values = data[key]
         freeDiskSpace = []
         times = []
         for value in values:
             splitted = str.split(value, ", ")
-            freeDiskSpace.append(splitted[0])
+            freeDiskSpace.append(int(splitted[0]))
             times.append(datetime.fromtimestamp(float(splitted[1])))
-        plt.plot(times, freeDiskSpace, label="Disk " + str(key), linewidth=0.7)
-    ax = plt.gca()
-    xfmt = mdates.DateFormatter('%H:%M:%S')
-    ax.xaxis.set_major_formatter(xfmt)
-    plt.xlabel("Time")
-    plt.ylabel("Disk Space (GB)")
-    plt.title("Free Disk Space (GB)")
-    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        try:
+            c = str(itr.__next__())
+        except StopIteration:
+            itr.reset()
+            c = str(itr.__next__())
+        axs[i].plot(times, freeDiskSpace, label="Disk " + str(key), linewidth=0.7, color=c)
+        axs[i].set_ylim(bottom=0, top=100)
+        axs[i].legend(loc='lower right')
+        xfmt = mdates.DateFormatter('%H:%M:%S')
+        axs[i].xaxis.set_major_formatter(xfmt)
+        i+=1
+    #plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
     plt.gcf().autofmt_xdate()
+    for ax in axs.flatten():
+        ax.xaxis.set_tick_params(labelbottom=True, rotation=45)
+        [t.set_visible(True) for t in ax.get_xticklabels()]
+    fig.subplots_adjust(top=0.95, hspace=0.4)
+    fig.suptitle("Used disk space")
     plt.savefig(name, bbox_inches='tight')
+    plt.close(fig)
+    plt.clf()
     plt.cla()
+        # for key in data:
+        #     values = data[key]
+        #     freeDiskSpace = []
+        #     times = []
+        #     for value in values:
+        #         splitted = str.split(value, ", ")
+        #         freeDiskSpace.append(splitted[0])
+        #         times.append(datetime.fromtimestamp(float(splitted[1])))
+        #     plt.plot(times, freeDiskSpace, label="Disk " + str(key), linewidth=0.7)
+        # ax = plt.gca()
+        # ax.invert_yaxis()
+        # xfmt = mdates.DateFormatter('%H:%M:%S')
+        # ax.xaxis.set_major_formatter(xfmt)
+        # plt.xlabel("Time")
+        # plt.ylabel("Disk Space (GB)")
+        # plt.title("Free Disk Space (GB)")
+        # plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        # plt.gcf().autofmt_xdate()
+        # plt.savefig(name, bbox_inches='tight')
+        # plt.cla()

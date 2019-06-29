@@ -2,14 +2,12 @@
 #threading doc: https://docs.python.org/2/library/threading.html
 import psutil, threading, configparser, requests
 from getpass import getpass
-#from arguments import arguments
 from modules.database import *
 from modules.graphics import *
 from modules.mail_notif import send_report, check_authentication, send_cpu_notif, send_memory_notif, sendErrorMailWithData, sendErrorMailNoData, send_final_report
 from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
 from xml.dom import minidom
-import math
 
             #Not necessary for the time being:
                 #Variables for disk monitorization
@@ -85,7 +83,7 @@ else:
 # if xNumValues > 11:
 #     xNumValues = 11
 
-def freeDiskSpaceDic():
+def diskSpaceDic():
     disk_autopsy = os.path.splitdrive(config["AUTOPSY CASE"]["working_directory"])[0]
 
     dps = psutil.disk_partitions()
@@ -111,7 +109,7 @@ def freeDiskSpaceDic():
 
 
 #Free Disk Space
-disks = freeDiskSpaceDic()
+disks = diskSpaceDic()
 disksIter = 0
 
 
@@ -290,15 +288,18 @@ def checkProcesses():
 
         memoryRecord = (totalMemoryUsage, totalPageFaults, systemMemoryUsage, solrMemory)
 
-        #Get free disk space
+        # Get percentage of used disk space
         for key in disks:
             try:
                 if key.__contains__("(disk used by Autopsy)"):
-                    freeDiskSpace = round(
-                        psutil.disk_usage(key.replace("(disk used by Autopsy)", ""))[2] * 0.000000000931323, 2)
+                    totalBytes = psutil.disk_usage(key.replace("(disk used by Autopsy)", ""))[0]
+                    currentUsedBytes = psutil.disk_usage(key.replace("(disk used by Autopsy)", ""))[1]
+                    percUsed = int(currentUsedBytes * 100 / totalBytes)
                 else:
-                    freeDiskSpace = round(psutil.disk_usage(key)[2] * 0.000000000931323, 2)
-                disks[key].append(str(freeDiskSpace) + ", " + str(datetime.now().timestamp()))
+                    totalBytes = psutil.disk_usage(key)[0]
+                    currentUsedBytes = psutil.disk_usage(key)[1]
+                    percUsed = int(currentUsedBytes * 100 / totalBytes)
+                disks[key].append(str(percUsed) +  ", " + str(datetime.now().timestamp()))
             except FileNotFoundError:
                 disks[key].append("-1" + ", " + str(datetime.now().timestamp()))
 
@@ -394,20 +395,20 @@ def periodicReport():
 
 def freeDiskSpaceValue():
     global disksIter
-    diskFreeSpace = {}
-    value = -1
+    diskUsedSpace = {}
+    numValues = -1
     for i in disks.values():
-        if value == -1:
-            value = len(i)
+        if numValues == -1:
+            numValues = len(i)
         else:
-            if value == len(i):
+            if numValues == len(i):
                 continue
             else:
                 print("Error getting free disk space")
     for key in disks:
-        diskFreeSpace[key] = disks[key][disksIter:value]
-    disksIter = value
-    return diskFreeSpace
+        diskUsedSpace[key] = disks[key][disksIter:numValues]
+    disksIter = numValues
+    return diskUsedSpace
 
 #CPU, IO and memory charts creation
 def createGraphic(id):
