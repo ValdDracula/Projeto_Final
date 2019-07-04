@@ -9,10 +9,10 @@ from modules.screenshot import screenshotAutopsy
 from modules.ini_validation import iniValidator
 from xml.dom import minidom
 
-            #Not necessary for the time being:
-                #Variables for disk monitorization
-                #previousDiskBusyTime = psutil.disk_io_counters().read_time + psutil.disk_io_counters().write_time
-                #print(str(previousDiskBusyTime))
+#Not necessary for the time being:
+#Variables for disk monitorization
+#previousDiskBusyTime = psutil.disk_io_counters().read_time + psutil.disk_io_counters().write_time
+#print(str(previousDiskBusyTime))
 
 #Load INI
 config = configparser.ConfigParser()
@@ -36,13 +36,13 @@ print("\n-----------------------\n\nProcess: " + str(PROCNAME))
 print("\nCPU PERCENT")
 mainProcess = None
 
-#Check if process(es) exist and get them in an array
+#Check if process exist and select it
 for proc in psutil.process_iter():
-	if proc.name() in PROCNAME:
-		mainProcess = proc
+    if proc.name() in PROCNAME:
+        mainProcess = proc
 if mainProcess is None:
-	print("No process named "+str(PROCNAME))
-	exit(2)
+    print("No process named "+str(PROCNAME))
+    exit(2)
 
 #Root directory
 dirname = os.path.dirname(os.path.abspath(__file__))
@@ -272,7 +272,7 @@ def checkProcesses():
             totalWriteCount += IOCounter.write_count
             totalReadBytes += IOCounter.read_bytes
             totalWriteBytes += IOCounter.write_bytes
-        
+
         IORecord = (totalReadCount, totalWriteCount, totalReadBytes, totalWriteBytes)
 
         totalMemoryUsage = 0
@@ -353,7 +353,7 @@ def checkProcesses():
 
     if notif_thread is not None:
         notif_thread.join()
-    
+
     print("[checkProcessesThread] Powering off")
 
 #Periodic report creation
@@ -373,7 +373,7 @@ def periodicReport():
         start_timestamp = time.time()
 
         if not threads_exit_event.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
-            
+
             print("[reportThread] The event flag is not set yet, continuing operation")
 
             #Call charts creation and send them in the notifications
@@ -385,7 +385,7 @@ def periodicReport():
 
         finish_timestamp = time.time()
         waiting_time = float(config["TIME INTERVAL"]["report"]) - (finish_timestamp - start_timestamp)
-        
+
 
     print("[reportThread] Event flag has been set, powering off")
 
@@ -461,11 +461,11 @@ def terminateThreads(allThreads):
     print("[MainThread] Setting event flag for all threads")
 
     # Event flag to signal the threads to finish
-    threads_exit_event.set() 
+    threads_exit_event.set()
 
     # Wait for the threads to finish
     print("[MainThread] Event flag set, waiting for the threads to finish")
-    
+
     for thread in allThreads:
         thread.join()
 
@@ -508,12 +508,12 @@ def readLogFile():
 
             continue
         # If it reaches EOF, it returns an empty string; set the ongoing_job flag if there was a startIngestJob declaration and no finishIngestJob one
-        elif log_line == "" and has_job_started and not ongoing_job_event.is_set(): 
+        elif log_line == "" and has_job_started and not ongoing_job_event.is_set():
             ongoing_job_event.set()
 
         if log_line == "":
             readLogFileThread_exit_event.wait(1)
-    
+
     print("[readLogFileThread] Event flag has been set, powering off")
 
     if not log_file.closed:
@@ -550,7 +550,7 @@ def main():
 
                 print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
                 sendErrorMailNoData(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
-                
+
                 terminateReadLogFileThread(readLogFileThread)
                 errorOccurred = True
 
@@ -606,7 +606,7 @@ def main():
 
             if not mainProcess.is_running():
                 print("[MainThread] The main Autopsy process has stopped, shutting down program...")
-                
+
                 print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
                 last_cpu_time = createGraphicTotal()
                 sendErrorMailWithData(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.", last_cpu_time)
@@ -641,7 +641,7 @@ def main():
             if readLogFileThread.is_alive():
                 print("[MainThread] readLogFileThread is still running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
-            
+
 
             print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
 
@@ -658,7 +658,7 @@ def main():
         print("[MainThread] Testing if the threads are running")
 
         if checkProcessesThread is not None and reportThread is not None and ongoing_job_event.is_set():
-            if checkProcessesThread.is_alive() or reportThread.is_alive() or readLogFileThread.is_alive(): 
+            if checkProcessesThread.is_alive() or reportThread.is_alive() or readLogFileThread.is_alive():
                 print("[MainThread] At least one thread is running, shutting them down")
                 allThreads = [checkProcessesThread, reportThread]
                 terminateThreads(allThreads)
@@ -680,4 +680,4 @@ def main():
 
 #EXECUTION
 if __name__ == '__main__':
-	main()
+    main()

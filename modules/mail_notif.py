@@ -267,7 +267,7 @@ def createPeriodicReport(last_cpu_time):
 	<img src="cid:solr_memory" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
-	<p><strong>Free Disk Space:</strong></p>
+	<p><strong>Disk Space:</strong></p>
 	<img src="cid:free_disk_space" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
@@ -430,7 +430,7 @@ def createErrorNotifWithData(title, message, last_cpu_time):
 	<img src="cid:solr_memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
-	<p><strong>Free Disk Space:</strong></p>
+	<p><strong>Disk Space:</strong></p>
 	<img src="cid:free_disk_space" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 	<p style="clear: both;">
 	<p>&nbsp;</p>
@@ -622,7 +622,7 @@ def createFinalReport(last_cpu_time):
 		<img src="cid:solr_memory_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 		<p style="clear: both;">
 		<p>&nbsp;</p>
-		<p><strong>Free Disk Space:</strong></p>
+		<p><strong>Disk Space:</strong></p>
 		<img src="cid:free_disk_space_final" alt="" style="float: left; width: 45%; margin-right: 1%; margin-bottom: 0.5em;"/>
 		<p style="clear: both;">
 		<p>&nbsp;</p>
