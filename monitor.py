@@ -163,8 +163,8 @@ def checkProcesses():
     while not threads_exit_event.is_set() and not errorOccurred: # Loops while the event flag has not been set
         start_timestamp = time.time()
         update_timeTuple = (round(start_timestamp),)
-        print("[" + time.strftime("%d/%m/%Y - %H:%M:%S", time.localtime(start_timestamp)) + " - " + str(start_timestamp) + "]" + "[checkProcessesThread] The event flag is not set yet, continuing operation")
-
+        #print("[" + time.strftime("%d/%m/%Y - %H:%M:%S", time.localtime(start_timestamp)) + " - " + str(start_timestamp) + "]" + "[checkProcessesThread] The event flag is not set yet, continuing operation")
+        print("Monitoring...")
         cpuUsage = 0.0
 
         processesCPUTimes = []
@@ -240,7 +240,7 @@ def checkProcesses():
                     errorOccurred = True
                     break
                 else:
-                    print("Something died!")
+                    print("Some processes were closed!")
 
         if errorOccurred:
             continue
@@ -316,7 +316,6 @@ def checkProcesses():
                 lastCpuValue = cpu_max_notif_data[-1][0]
                 notif_thread = threading.Thread(target=send_cpu_notif, args=(smtp_password, lastCpuValue))
                 notif_thread.start()
-                print("[CPU USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 cpu_occurrences_max = 0
             else:
                 cpu_occurrences_max += 1
@@ -331,7 +330,6 @@ def checkProcesses():
                 lastMemoryValue = int(memory_max_notif_data[-1][0]) / 1000000
                 notif_thread = threading.Thread(target=send_memory_notif, args=(smtp_password, lastMemoryValue))
                 notif_thread.start()
-                print("[MEMORY USAGE] NOTIFICATION HERE! PLEASE LET ME KNOW VIA EMAIL!")
                 memory_occurrences_max = 0
             else:
                 memory_occurrences_max += 1
@@ -345,16 +343,16 @@ def checkProcesses():
         if waiting_time > 0:
             threads_exit_event.wait(timeout=waiting_time)
 
-    if not errorOccurred:
-        print("[checkProcessesThread] Event flag has been set")
+    #if not errorOccurred:
+    #    print("[checkProcessesThread] Event flag has been set")
 
-    print("[checkProcessesThread] Updating current job in the database")
+    print("Updating current job in the database")
     update_jobs_record()
 
     if notif_thread is not None:
         notif_thread.join()
 
-    print("[checkProcessesThread] Powering off")
+    print("Powering off")
 
 #Periodic report creation
 def periodicReport():
@@ -374,7 +372,8 @@ def periodicReport():
 
         if not threads_exit_event.is_set(): # Thread could be unblocked in the above line because the event flag has actually been set, not because the time has run out
 
-            print("[reportThread] The event flag is not set yet, continuing operation")
+            #print("[reportThread] The event flag is not set yet, continuing operation")
+            print("Sending report...")
 
             #Call charts creation and send them in the notifications
             id, last_cpu_time = createGraphic(id)
@@ -387,7 +386,7 @@ def periodicReport():
         waiting_time = float(config["TIME INTERVAL"]["report"]) - (finish_timestamp - start_timestamp)
 
 
-    print("[reportThread] Event flag has been set, powering off")
+    #print("[reportThread] Event flag has been set, powering off")
 
     for thread in notif_thread_list:
         thread.join()
@@ -446,32 +445,32 @@ def createGraphicTotal():
 
 
 def terminateReadLogFileThread(readLogFileThread):
-    print("[MainThread] Setting event flag for readLogFileThread")
+    #print("[MainThread] Setting event flag for readLogFileThread")
 
     readLogFileThread_exit_event.set() # Event flag to signal the thread to finish
 
     # Wait for the thread to finish
-    print("[MainThread] Event flag set, waiting for the thread to finish")
+    #print("[MainThread] Event flag set, waiting for the thread to finish")
 
     readLogFileThread.join()
 
-    print("[MainThread] readLogFileThread has finished")
+    #print("[MainThread] readLogFileThread has finished")
 
 def terminateThreads(allThreads):
-    print("[MainThread] Setting event flag for all threads")
+    #print("[MainThread] Setting event flag for all threads")
 
     # Event flag to signal the threads to finish
     threads_exit_event.set()
 
     # Wait for the threads to finish
-    print("[MainThread] Event flag set, waiting for the threads to finish")
+    #print("[MainThread] Event flag set, waiting for the threads to finish")
 
     for thread in allThreads:
         thread.join()
 
     threads_exit_event.clear() # In case a job has finished but the program is not going to terminate
 
-    print("[MainThread] All threads have finished")
+    #print("[MainThread] All threads have finished")
 
 def readLogFile():
     working_directory = config["AUTOPSY CASE"]["working_directory"]
@@ -504,7 +503,7 @@ def readLogFile():
             if ongoing_job_event.is_set():
                 ongoing_job_event.clear()
                 job_error_event.set()
-                print("[readLogFileThread] AUTOPSY ERROR DETECTED - the job could not be started")
+                print("AUTOPSY ERROR DETECTED - the job could not be started")
 
             continue
         # If it reaches EOF, it returns an empty string; set the ongoing_job flag if there was a startIngestJob declaration and no finishIngestJob one
@@ -514,7 +513,7 @@ def readLogFile():
         if log_line == "":
             readLogFileThread_exit_event.wait(1)
 
-    print("[readLogFileThread] Event flag has been set, powering off")
+    print("Powering off")
 
     if not log_file.closed:
         log_file.close()
@@ -532,23 +531,23 @@ def main():
         while not errorOccurred:
             # Check if there's an ongoing job
 
-            print("[MainThread] Waiting for a job to start")
+            print("Waiting for a job to start...")
 
             while not ongoing_job_event.is_set() and readLogFileThread.is_alive() and mainProcess.is_running():
                 time.sleep(0.1)
 
             if not readLogFileThread.is_alive():
-                print("[MainThread] readLogFileThread has stopped unexpectedly, shutting down program...")
-                print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
+                print("readLogFileThread has stopped unexpectedly, shutting down program...")
+                print("Sending email notifying there was an unexpected problem during MonAutopsy's execution")
 
                 sendErrorMailNoData(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.")
                 errorOccurred = True
 
                 continue
             elif not mainProcess.is_running():
-                print("[MainThread] The main Autopsy process has stopped, shutting down program...")
+                print("The main Autopsy process has stopped, shutting down program...")
 
-                print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
+                print("Sending email notifying Autopsy has terminated unexpectedly")
                 sendErrorMailNoData(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.")
 
                 terminateReadLogFileThread(readLogFileThread)
@@ -557,18 +556,18 @@ def main():
                 continue
 
             # At this point, the flag has been set and there are no errors, which means there's an ongoing job
-            print("[MainThread] Ongoing job detected")
+            print("Ongoing job detected")
 
             add_jobs_record()
 
-            print("[MainThread] Starting up threads")
+            #print("[MainThread] Starting up threads")
 
             checkProcessesThread = threading.Thread(target=checkProcesses, name="checkProcessesThread")
             reportThread = threading.Thread(target=periodicReport, name="reportThread")
             checkProcessesThread.start()
             reportThread.start()
 
-            print("[MainThread] All threads have started, going to sleep")
+            #print("[MainThread] All threads have started, going to sleep")
 
             # Without the following loop, it will leave the try-except block and won't catch any exceptions
             #while True: 
@@ -581,21 +580,21 @@ def main():
             # If the flag has been reset, which means the job has ended and no errors occured
             if not ongoing_job_event.is_set():
                 if not job_error_event.is_set():
-                    print("[MainThread] The job has finished, shutting down threads...")
+                    print("The job has finished")
                     terminateThreads([checkProcessesThread, reportThread])
 
                     # SEND EMAIL NOTIFYING AUTOPSY JOB HAS ENDED HERE
-                    print("[MainThread] Sending email with the final report.")
+                    print("Sending email with the final report.")
                     last_cpu_time = createGraphicTotal()
                     notif_thread = threading.Thread(target=send_final_report, args=(smtp_password, last_cpu_time))
                     notif_thread.start()
 
                 else:
-                    print("[MainThread] AUTOPSY ERROR - the job could not be started, shutting down threads...")
+                    print("AUTOPSY ERROR - the job could not be started")
                     job_error_event.clear()
                     terminateThreads([checkProcessesThread, reportThread])
 
-                    print("[MainThread] Sending email notifying there was a problem during an Autopsy job execution")
+                    print("Sending email notifying there was a problem during an Autopsy job execution")
 
                     notif_thread = threading.Thread(target=sendErrorMailNoData, args=(smtp_password, "Autopsy Job Execution Error", "There was a problem in a Autopsy job execution and it has stopped."))
                     notif_thread.start()
@@ -605,9 +604,9 @@ def main():
             # Check if the main Autopsy process stopped
 
             if not mainProcess.is_running():
-                print("[MainThread] The main Autopsy process has stopped, shutting down program...")
+                print("The main Autopsy process has stopped, shutting down program...")
 
-                print("[MainThread] Sending email notifying Autopsy has terminated unexpectedly")
+                print("Sending email notifying Autopsy has terminated unexpectedly")
                 last_cpu_time = createGraphicTotal()
                 sendErrorMailWithData(smtp_password, "Autopsy Termination", "Autopsy has terminated, possibly due to a crash.", last_cpu_time)
 
@@ -620,62 +619,62 @@ def main():
 
             # If it gets here, it means one or more of the threads has ended unexpectedly
 
-            print("[MainThread] Something unexpected happened, shutting down program...")
+            print("Something unexpected happened, shutting down program...")
 
             allThreads = []
 
             if checkProcessesThread.is_alive():
-                print("[MainThread] checkProcessesThread is still running, shutting it down")
+                #print("[MainThread] checkProcessesThread is still running, shutting it down")
                 allThreads.append(checkProcessesThread)
-            else:
-                print("[MainThread] checkProcessesThread has stopped unexpectedly")
+            #else:
+                #print("[MainThread] checkProcessesThread has stopped unexpectedly")
 
             if reportThread.is_alive():
-                print("[MainThread] reportThread is still running, shutting it down")
+                #print("[MainThread] reportThread is still running, shutting it down")
                 allThreads.append(reportThread)
-            else:
-                print("[MainThread] reportThread has stopped unexpectedly")
+            #else:
+                #print("[MainThread] reportThread has stopped unexpectedly")
 
             terminateThreads(allThreads)
 
             if readLogFileThread.is_alive():
-                print("[MainThread] readLogFileThread is still running, shutting it down")
+                #print("[MainThread] readLogFileThread is still running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
 
 
-            print("[MainThread] Sending email notifying there was an unexpected problem during MonAutopsy's execution")
+            print("Sending email notifying there was an unexpected problem during MonAutopsy's execution")
 
             # Create charts and send notif
             last_cpu_time = createGraphicTotal()
             sendErrorMailWithData(smtp_password, "MonAutopsy Execution Error", "There was an unexpected MonAutopsy execution error and the program has been terminated.", last_cpu_time)
             errorOccurred = True
 
-        print("[MainThread] Goodbye")
+        print("Goodbye")
 
     except KeyboardInterrupt:
-        print("[MainThread] CTRL-C detected")
+        print("CTRL-C detected")
 
-        print("[MainThread] Testing if the threads are running")
+        print("Testing if the threads are running")
 
         if checkProcessesThread is not None and reportThread is not None and ongoing_job_event.is_set():
             if checkProcessesThread.is_alive() or reportThread.is_alive() or readLogFileThread.is_alive():
-                print("[MainThread] At least one thread is running, shutting them down")
+                #print("[MainThread] At least one thread is running, shutting them down")
                 allThreads = [checkProcessesThread, reportThread]
                 terminateThreads(allThreads)
                 terminateReadLogFileThread(readLogFileThread)
-            else:
-                print("[MainThread] No thread is running")
+            #else:
+                #print("[MainThread] No thread is running")
         else:
             if readLogFileThread.is_alive():
-                print("[MainThread] There's one thread running, shutting it down")
+                #print("[MainThread] There's one thread running, shutting it down")
                 terminateReadLogFileThread(readLogFileThread)
 
         if ongoing_job_event.is_set():
-            print("[MainThread] Sending email notifying MonAutopsy has been closed")
+            print("Sending email notifying MonAutopsy has been closed")
             # Create charts and send notif
             last_cpu_time = createGraphicTotal()
             sendErrorMailWithData(smtp_password, "MonAutopsy Termination", "MonAutopsy has been terminated locally.", last_cpu_time)
-        print("[MainThread] Goodbye")
+        print("Goodbye")
 
 
 #EXECUTION
